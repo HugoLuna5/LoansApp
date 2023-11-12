@@ -6,6 +6,7 @@ import 'package:loans_app/components/app_text_form_field.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:loans_app/values/app_routes.dart';
 
 class FullDataPage extends StatefulWidget {
   const FullDataPage({Key? key}) : super(key: key);
@@ -72,8 +73,16 @@ class FullDataPageState extends State<FullDataPage> {
   }
 
   final _formKeyLaboralData = GlobalKey<FormState>();
-  final _formKeyAccountInfo = GlobalKey<FormState>();
 
+  TextEditingController currentWorkController = TextEditingController();
+  TextEditingController earningsController = TextEditingController();
+
+  final _formKeyAccountInfo = GlobalKey<FormState>();
+  TextEditingController accountNumberController = TextEditingController();
+  TextEditingController accountNameController = TextEditingController();
+
+  List<String> list = <String>['Modalidad', 'Tiempo Completo', 'Medio tiempo'];
+  String dropdownValue = 'Modalidad';
   @override
   Widget build(BuildContext context) {
     final size = context.mediaQuerySize;
@@ -166,10 +175,17 @@ class FullDataPageState extends State<FullDataPage> {
                                 }
                               }
                             } else if (currentStep == 2) {
-                              if (_formKeyLaboralData.currentState
-                                      ?.validate() ??
-                                  false) {
+                              if ((_formKeyLaboralData.currentState
+                                          ?.validate() ??
+                                      false) &&
+                                  (_formKeyPersonalData.currentState
+                                          ?.validate() ??
+                                      false) &&
+                                  (_formKeyLaboralData.currentState
+                                          ?.validate() ??
+                                      false)) {
                                 //go To home
+                                AppRoutes.homeScreen.pushName();
                               }
                             }
                           },
@@ -212,84 +228,86 @@ class FullDataPageState extends State<FullDataPage> {
         content: Column(
           children: [
             Form(
+                key: _formKeyPersonalData,
                 child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        AppTextFormField(
-                          labelText: 'Fecha de nacimiento',
-                          autofocus: true,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(
-                                    2000), //DateTime.now() - not to allow to choose before today.
-                                lastDate: DateTime(2101));
-
-                            if (pickedDate != null) {
-                              String formattedDate =
-                                  DateFormat('yyyy-MM-dd').format(pickedDate);
-
-                              setState(() {
-                                birthdayController.text = formattedDate;
-                              });
-                            }
-                          },
-                          onChanged: (value) =>
-                              _formKeyPersonalData.currentState?.validate(),
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Por favor, introduzca su fecha de nacimiento '
-                                : value.length < 3
-                                    ? 'Fecha de nacimiento inválida'
-                                    : null;
-                          },
-                          controller: birthdayController,
-                        ),
-                        AppTextFormField(
-                          labelText: 'Educación',
-                          autofocus: true,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (value) =>
-                              _formKeyPersonalData.currentState?.validate(),
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Por favor, introduzca su último grado de estudios '
-                                : value.length < 4
-                                    ? 'Grado de estudios inválido'
-                                    : null;
-                          },
-                          controller: educationController,
-                        ),
-                        Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            TextButton(
-                                onPressed: () => {showOptions()},
-                                child: const Text("INE")),
-                            Center(
-                              child: _image == null
-                                  ? const Text(
-                                      'No haz seleccionado una imagen.')
-                                  : Image.file(
-                                      _image!,
-                                      width: 120,
-                                      height: 60,
-                                    ),
+                            AppTextFormField(
+                              labelText: 'Fecha de nacimiento',
+                              autofocus: true,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              onTap: () async {
+                                DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(
+                                        2000), //DateTime.now() - not to allow to choose before today.
+                                    lastDate: DateTime(2101));
+
+                                if (pickedDate != null) {
+                                  String formattedDate =
+                                      DateFormat('yyyy-MM-dd')
+                                          .format(pickedDate);
+
+                                  setState(() {
+                                    birthdayController.text = formattedDate;
+                                  });
+                                }
+                              },
+                              onChanged: (value) =>
+                                  _formKeyPersonalData.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca su fecha de nacimiento '
+                                    : value.length < 3
+                                        ? 'Fecha de nacimiento inválida'
+                                        : null;
+                              },
+                              controller: birthdayController,
+                            ),
+                            AppTextFormField(
+                              labelText: 'Educación',
+                              autofocus: true,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (value) =>
+                                  _formKeyPersonalData.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca su último grado de estudios '
+                                    : value.length < 4
+                                        ? 'Grado de estudios inválido'
+                                        : null;
+                              },
+                              controller: educationController,
+                            ),
+                            Row(
+                              children: [
+                                TextButton(
+                                    onPressed: () => {showOptions()},
+                                    child: const Text("INE")),
+                                Center(
+                                  child: _image == null
+                                      ? const Text(
+                                          'No haz seleccionado una imagen.')
+                                      : Image.file(
+                                          _image!,
+                                          width: 120,
+                                          height: 60,
+                                        ),
+                                )
+                              ],
                             )
-                          ],
-                        )
-                      ]),
-                ),
-              ],
-            ))
+                          ]),
+                    ),
+                  ],
+                ))
           ],
         ),
       ),
@@ -300,50 +318,67 @@ class FullDataPageState extends State<FullDataPage> {
         content: Column(
           children: [
             Form(
+                key: _formKeyLaboralData,
                 child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        AppTextFormField(
-                          labelText: 'Nombre',
-                          autofocus: true,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (value) =>
-                              _formKeyLaboralData.currentState?.validate(),
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Por favor, introduzca su nombre '
-                                : value.length < 3
-                                    ? 'Nombre inválido'
-                                    : null;
-                          },
-                          controller: birthdayController,
-                        ),
-                        AppTextFormField(
-                          labelText: 'Ocupación',
-                          autofocus: true,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (value) =>
-                              _formKeyPersonalData.currentState?.validate(),
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Por favor, introduzca su ocupación '
-                                : value.length < 4
-                                    ? 'Ocupación inválida'
-                                    : null;
-                          },
-                          controller: birthdayController,
-                        ),
-                      ]),
-                ),
-              ],
-            ))
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            AppTextFormField(
+                              labelText: 'Trabajo actual',
+                              autofocus: true,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (value) =>
+                                  _formKeyLaboralData.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca su trabajo actual '
+                                    : value.length < 4
+                                        ? 'Trabajo actual inválido'
+                                        : null;
+                              },
+                              controller: currentWorkController,
+                            ),
+                            AppTextFormField(
+                              labelText: 'Ingresos',
+                              autofocus: true,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (value) =>
+                                  _formKeyPersonalData.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca su ocupación '
+                                    : value.length < 4
+                                        ? 'Ocupación inválida'
+                                        : null;
+                              },
+                              controller: earningsController,
+                            ),
+                            Container(
+                              width: double.infinity,
+                              child: DropdownMenu<String>(
+                                initialSelection: list.first,
+                                width: 310,
+                                onSelected: (String? value) {
+                                  dropdownValue = value.toString();
+                                },
+                                dropdownMenuEntries: list
+                                    .map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                  return DropdownMenuEntry<String>(
+                                      value: value, label: value);
+                                }).toList(),
+                              ),
+                            )
+                          ]),
+                    ),
+                  ],
+                ))
           ],
         ),
       ),
@@ -354,34 +389,51 @@ class FullDataPageState extends State<FullDataPage> {
         content: Column(
           children: [
             Form(
+                key: _formKeyAccountInfo,
                 child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        AppTextFormField(
-                          labelText: 'Nombre',
-                          autofocus: true,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (value) =>
-                              _formKeyAccountInfo.currentState?.validate(),
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Por favor, introduzca su nombre '
-                                : value.length < 3
-                                    ? 'Nombre inválido'
-                                    : null;
-                          },
-                          controller: birthdayController,
-                        ),
-                      ]),
-                ),
-              ],
-            ))
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            AppTextFormField(
+                              labelText: 'Número de cuenta',
+                              autofocus: true,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (value) =>
+                                  _formKeyAccountInfo.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca el número de cuenta '
+                                    : value.length < 3
+                                        ? 'Número inválido'
+                                        : null;
+                              },
+                              controller: accountNumberController,
+                            ),
+                            AppTextFormField(
+                              labelText: 'Nombre del propietario',
+                              autofocus: true,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (value) =>
+                                  _formKeyAccountInfo.currentState?.validate(),
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Por favor, introduzca el nombre del propietario de la cuenta '
+                                    : value.length < 3
+                                        ? 'Nombre inválido'
+                                        : null;
+                              },
+                              controller: accountNameController,
+                            ),
+                          ]),
+                    ),
+                  ],
+                ))
           ],
         ),
       ),

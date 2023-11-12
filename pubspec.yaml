@@ -60,6 +60,15 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/images/
+
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-Medium.ttf
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
