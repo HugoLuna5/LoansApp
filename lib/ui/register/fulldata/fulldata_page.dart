@@ -1,0 +1,390 @@
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:loans_app/components/app_text_form_field.dart';
+import 'package:loans_app/utils/extensions.dart';
+import 'package:loans_app/values/app_colors.dart';
+import 'package:intl/intl.dart';
+
+class FullDataPage extends StatefulWidget {
+  const FullDataPage({Key? key}) : super(key: key);
+
+  @override
+  FullDataPageState createState() => FullDataPageState();
+}
+
+class FullDataPageState extends State<FullDataPage> {
+  int currentStep = 0;
+
+  final _formKeyPersonalData = GlobalKey<FormState>();
+  TextEditingController birthdayController = TextEditingController();
+  TextEditingController educationController = TextEditingController();
+  File? _image = null;
+  final picker = ImagePicker();
+
+  Future getImageFromGallery() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+
+  //Image Picker function to get image from camera
+  Future getImageFromCamera() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+
+  Future showOptions() async {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            child: const Text('Galeria'),
+            onPressed: () {
+              // close the options modal
+              Navigator.of(context).pop();
+              // get image from gallery
+              getImageFromGallery();
+            },
+          ),
+          CupertinoActionSheetAction(
+            child: const Text('Camara'),
+            onPressed: () {
+              // close the options modal
+              Navigator.of(context).pop();
+              // get image from camera
+              getImageFromCamera();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  final _formKeyLaboralData = GlobalKey<FormState>();
+  final _formKeyAccountInfo = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    final size = context.mediaQuerySize;
+    return MaterialApp(
+      home: Scaffold(
+          body: SingleChildScrollView(
+        child: Container(
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              children: [
+                Container(
+                  height: size.height * 0.24,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.lightBlue,
+                        AppColors.blue,
+                        AppColors.darkBlue,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 15,
+                        ),
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Text(
+                            'Completar registro',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(
+                            height: 6,
+                          ),
+                          Text(
+                            'Llena los datos para completar tu registro',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Stepper(
+                  controlsBuilder: (context, _) {
+                    return Row(
+                      children: <Widget>[
+                        FilledButton(
+                          onPressed: () {
+                            if (currentStep == 0) {
+                              if (_formKeyPersonalData.currentState
+                                      ?.validate() ??
+                                  false) {
+                                bool isLastStep =
+                                    (currentStep == getSteps().length - 1);
+                                if (isLastStep) {
+                                  //Do something with this information
+                                } else {
+                                  setState(() {
+                                    currentStep += 1;
+                                  });
+                                }
+                              }
+                            } else if (currentStep == 1) {
+                              if (_formKeyLaboralData.currentState
+                                      ?.validate() ??
+                                  false) {
+                                bool isLastStep =
+                                    (currentStep == getSteps().length - 1);
+                                if (isLastStep) {
+                                  //Do something with this information
+                                } else {
+                                  setState(() {
+                                    currentStep += 1;
+                                  });
+                                }
+                              }
+                            } else if (currentStep == 2) {
+                              if (_formKeyLaboralData.currentState
+                                      ?.validate() ??
+                                  false) {
+                                //go To home
+                              }
+                            }
+                          },
+                          style: const ButtonStyle().copyWith(),
+                          child: const Text('Continuar'),
+                        ),
+                        TextButton(
+                          onPressed: () => currentStep == 0
+                              ? null
+                              : setState(() {
+                                  currentStep -= 1;
+                                }),
+                          child: const Text(
+                            'Cancelar',
+                            style: TextStyle(color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  type: StepperType.vertical,
+                  currentStep: currentStep,
+                  onStepTapped: (step) => setState(() {
+                    currentStep = step;
+                  }),
+                  steps: getSteps(),
+                )
+              ],
+            )),
+      )),
+    );
+  }
+
+  List<Step> getSteps() {
+    return <Step>[
+      Step(
+        state: currentStep > 0 ? StepState.complete : StepState.indexed,
+        isActive: currentStep >= 0,
+        title: const Text("Información personal"),
+        content: Column(
+          children: [
+            Form(
+                child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        AppTextFormField(
+                          labelText: 'Fecha de nacimiento',
+                          autofocus: true,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                          onTap: () async {
+                            DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(
+                                    2000), //DateTime.now() - not to allow to choose before today.
+                                lastDate: DateTime(2101));
+
+                            if (pickedDate != null) {
+                              String formattedDate =
+                                  DateFormat('yyyy-MM-dd').format(pickedDate);
+
+                              setState(() {
+                                birthdayController.text = formattedDate;
+                              });
+                            }
+                          },
+                          onChanged: (value) =>
+                              _formKeyPersonalData.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? 'Por favor, introduzca su fecha de nacimiento '
+                                : value.length < 3
+                                    ? 'Fecha de nacimiento inválida'
+                                    : null;
+                          },
+                          controller: birthdayController,
+                        ),
+                        AppTextFormField(
+                          labelText: 'Educación',
+                          autofocus: true,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (value) =>
+                              _formKeyPersonalData.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? 'Por favor, introduzca su último grado de estudios '
+                                : value.length < 4
+                                    ? 'Grado de estudios inválido'
+                                    : null;
+                          },
+                          controller: educationController,
+                        ),
+                        Row(
+                          children: [
+                            TextButton(
+                                onPressed: () => {showOptions()},
+                                child: const Text("INE")),
+                            Center(
+                              child: _image == null
+                                  ? const Text(
+                                      'No haz seleccionado una imagen.')
+                                  : Image.file(
+                                      _image!,
+                                      width: 120,
+                                      height: 60,
+                                    ),
+                            )
+                          ],
+                        )
+                      ]),
+                ),
+              ],
+            ))
+          ],
+        ),
+      ),
+      Step(
+        state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        isActive: currentStep >= 1,
+        title: const Text("Información laboral"),
+        content: Column(
+          children: [
+            Form(
+                child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        AppTextFormField(
+                          labelText: 'Nombre',
+                          autofocus: true,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (value) =>
+                              _formKeyLaboralData.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? 'Por favor, introduzca su nombre '
+                                : value.length < 3
+                                    ? 'Nombre inválido'
+                                    : null;
+                          },
+                          controller: birthdayController,
+                        ),
+                        AppTextFormField(
+                          labelText: 'Ocupación',
+                          autofocus: true,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (value) =>
+                              _formKeyPersonalData.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? 'Por favor, introduzca su ocupación '
+                                : value.length < 4
+                                    ? 'Ocupación inválida'
+                                    : null;
+                          },
+                          controller: birthdayController,
+                        ),
+                      ]),
+                ),
+              ],
+            ))
+          ],
+        ),
+      ),
+      Step(
+        state: currentStep > 2 ? StepState.complete : StepState.indexed,
+        isActive: currentStep >= 2,
+        title: const Text("Información bancaria"),
+        content: Column(
+          children: [
+            Form(
+                child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        AppTextFormField(
+                          labelText: 'Nombre',
+                          autofocus: true,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (value) =>
+                              _formKeyAccountInfo.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? 'Por favor, introduzca su nombre '
+                                : value.length < 3
+                                    ? 'Nombre inválido'
+                                    : null;
+                          },
+                          controller: birthdayController,
+                        ),
+                      ]),
+                ),
+              ],
+            ))
+          ],
+        ),
+      ),
+    ];
+  }
+}
