@@ -2,24 +2,42 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loans_app/core/models/contacts.dart';
 import 'package:loans_app/core/models/transaction.dart';
+import 'package:loans_app/ui/accounts/accounts_screen.dart';
+import 'package:loans_app/ui/loans/loans_screen.dart';
+import 'package:loans_app/ui/transactions/transactions_screen.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class TabHomeScreen extends StatefulWidget {
+  const TabHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<TabHomeScreen> createState() => _TabHomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _TabHomeScreenState extends State<TabHomeScreen> {
+  int currentIndex = 0;
+
+  final List<Widget> _children = [
+    const HomeScreen(),
+    const TransactionsScreen(),
+    const LoansScreen(),
+    const AccountScreen()
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: color.AppColors.backgroundColor,
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
         selectedItemColor: color.AppColors.accentColor,
         unselectedItemColor: color.AppColors.disableColor,
         showUnselectedLabels: true,
+        onTap: (newIndex) => {
+          setState(() {
+            currentIndex = newIndex;
+          })
+        },
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home_filled), label: 'Inicio'),
@@ -31,22 +49,31 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.credit_card), label: 'Cuentas'),
         ],
       ),
-      body: const SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TopSection(),
-              // ContactSection(),
-              SizedBox(
-                height: 20,
-              ),
-              ActionSection(),
-              SizedBox(
-                height: 20,
-              ),
-              TransactionSection()
-            ],
-          ),
+      body: _children[currentIndex],
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            TopSection(),
+            // ContactSection(),
+            SizedBox(
+              height: 20,
+            ),
+            ActionSection(),
+            SizedBox(
+              height: 20,
+            ),
+            TransactionSection()
+          ],
         ),
       ),
     );

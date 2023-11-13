@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.loginScreen: (context) => const LoginPage(),
         AppRoutes.registerScreen: (context) => const RegisterPage(),
         AppRoutes.registerFullData: (context) => const FullDataPage(),
-        AppRoutes.homeScreen: (context) => const HomeScreen()
+        AppRoutes.homeScreen: (context) => const TabHomeScreen()
       },
     );
   }
