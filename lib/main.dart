@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loans_app/ui/home/home_screen.dart';
 import 'package:loans_app/ui/register/fulldata/fulldata_page.dart';
 import 'package:loans_app/values/app_constants.dart';
 import 'package:loans_app/values/app_routes.dart';
@@ -40,7 +41,8 @@ class MyApp extends StatelessWidget {
       routes: {
         AppRoutes.loginScreen: (context) => const LoginPage(),
         AppRoutes.registerScreen: (context) => const RegisterPage(),
-        AppRoutes.registerFullData: (context) => const FullDataPage()
+        AppRoutes.registerFullData: (context) => const FullDataPage(),
+        AppRoutes.homeScreen: (context) => const HomeScreen()
       },
     );
   }

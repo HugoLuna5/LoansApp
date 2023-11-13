@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: 6,
                     ),
                     Text(
-                      'Acceda a su cuenta',
+                      'Acceda a tu cuenta',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -146,6 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                               );
                               emailController.clear();
                               passwordController.clear();
+                              AppRoutes.homeScreen.pushName();
                             }
                           : null,
                       style: const ButtonStyle().copyWith(
