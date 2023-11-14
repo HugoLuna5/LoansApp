@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:loans_app/values/app_colors.dart' as color;
 
-class AppTextFormField extends StatelessWidget {
-  const AppTextFormField({
+class AppTextFormFieldAmountLoan extends StatelessWidget {
+  const AppTextFormFieldAmountLoan({
     required this.textInputAction,
     required this.labelText,
+    required this.hintText,
     required this.keyboardType,
     required this.controller,
     super.key,
-    this.hintText,
     this.onChanged,
     this.onTap,
     this.validator,
@@ -15,7 +16,6 @@ class AppTextFormField extends StatelessWidget {
     this.suffixIcon,
     this.onEditingComplete,
     this.autofocus,
-    this.enabled,
     this.focusNode,
   });
 
@@ -28,33 +28,33 @@ class AppTextFormField extends StatelessWidget {
   final bool? obscureText;
   final Widget? suffixIcon;
   final String labelText;
-  final String? hintText;
+  final String hintText;
   final bool? autofocus;
-  final bool? enabled;
   final FocusNode? focusNode;
   final void Function()? onEditingComplete;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(0),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         textInputAction: textInputAction,
         focusNode: focusNode,
-        enabled: enabled,
         onChanged: onChanged,
         autofocus: autofocus ?? false,
-        validator: enabled ?? false ? validator : null,
+        validator: validator,
         obscureText: obscureText ?? false,
+        textAlign: TextAlign.center,
         obscuringCharacter: '*',
         onEditingComplete: onEditingComplete,
         decoration: InputDecoration(
+          border: InputBorder.none,
           suffixIcon: suffixIcon,
           labelText: labelText,
-          hintText: hintText ?? "",
-          floatingLabelBehavior: FloatingLabelBehavior.always,
+          fillColor: color.AppColors.backgroundColor,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
         ),
         onTap: onTap,
         onTapOutside: (event) => FocusScope.of(context).unfocus(),

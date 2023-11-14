@@ -346,20 +346,20 @@ class FullDataPageState extends State<FullDataPage> {
                             AppTextFormField(
                               labelText: 'Ingresos',
                               autofocus: true,
-                              keyboardType: TextInputType.name,
+                              keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
                               onChanged: (value) =>
                                   _formKeyPersonalData.currentState?.validate(),
                               validator: (value) {
                                 return value!.isEmpty
-                                    ? 'Por favor, introduzca su ocupación '
+                                    ? 'Por favor, introduzca sus ingresos estimados '
                                     : value.length < 4
-                                        ? 'Ocupación inválida'
+                                        ? 'Ingresos estimados inválidos'
                                         : null;
                               },
                               controller: earningsController,
                             ),
-                            Container(
+                            SizedBox(
                               width: double.infinity,
                               child: DropdownMenu<String>(
                                 initialSelection: list.first,

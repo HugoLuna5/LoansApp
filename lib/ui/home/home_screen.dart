@@ -304,10 +304,13 @@ class ActionSection extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          ActionItem(
-              icon: Icons.payments_outlined,
-              color: color.AppColors.accentColor,
-              title: 'Solicitar'),
+          GestureDetector(
+            onTap: () => {},
+            child: ActionItem(
+                icon: Icons.payments_outlined,
+                color: color.AppColors.accentColor,
+                title: 'Solicitar'),
+          ),
           ActionItem(
             icon: Icons.credit_card_outlined,
             color: color.AppColors.orangeColor,

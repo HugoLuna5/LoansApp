@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:loans_app/core/models/credits.dart';
+import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
+import 'package:loans_app/values/app_routes.dart';
 
 class LoansScreen extends StatelessWidget {
   const LoansScreen({Key? key}) : super(key: key);
@@ -9,6 +11,13 @@ class LoansScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: color.AppColors.backgroundColor,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => {AppRoutes.requestLoan.pushName()},
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+      ),
       appBar: AppBar(
         title: const Text(
           'Créditos',

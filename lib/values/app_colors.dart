@@ -6,6 +6,8 @@ class AppColors {
   static const blue = Color(0xff152534);
   static const darkBlue = Color(0xff0C1C2E);
   static const grey = Color(0xffE8EAEC);
+  static const secondary = Color(0xFF717276);
+  static const contractText = Color(0xFFFD8509);
 
   static Color backgroundColor = const Color(0xFFF3F4F5);
   static Color accentColor = const Color(0xFF0666EB);

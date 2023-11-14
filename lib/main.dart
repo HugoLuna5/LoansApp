@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loans_app/ui/accounts/add/add_account_screen.dart';
 import 'package:loans_app/ui/home/home_screen.dart';
+import 'package:loans_app/ui/loans/request/request_loan_screen.dart';
 import 'package:loans_app/ui/register/fulldata/fulldata_page.dart';
 import 'package:loans_app/values/app_constants.dart';
 import 'package:loans_app/values/app_routes.dart';
@@ -42,7 +44,9 @@ class MyApp extends StatelessWidget {
         AppRoutes.loginScreen: (context) => const LoginPage(),
         AppRoutes.registerScreen: (context) => const RegisterPage(),
         AppRoutes.registerFullData: (context) => const FullDataPage(),
-        AppRoutes.homeScreen: (context) => const TabHomeScreen()
+        AppRoutes.homeScreen: (context) => const TabHomeScreen(),
+        AppRoutes.requestLoan: (context) => const RequestLoanScreen(),
+        AppRoutes.addAccount: (context) => const AddAccountScreen()
       },
     );
   }
