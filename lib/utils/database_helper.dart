@@ -69,8 +69,7 @@ class DatabaseHelper {
   Future _onCreate(Database db, int version) async {
     await db.execute('''
           CREATE TABLE $userTable (
-             $columnId INTEGER PRIMARY KEY,
-             $columnUserId int(11) NOT NULL,
+             $columnId INTEGER PRIMARY KEY autoincrement,
              $userColumnName TEXT NOT NULL,
              $userColumnLastName TEXT NOT NULL,
              $userColumnEmail varchar(255) NOT NULL UNIQUE,
@@ -86,7 +85,7 @@ class DatabaseHelper {
 
     await db.execute('''
             CREATE TABLE $accountsTable (
-              $columnId INTEGER PRIMARY KEY,
+              $columnId INTEGER PRIMARY KEY autoincrement,
               $columnUserId int(11) NOT NULL,
               $accountsColumnNumber TEXT NOT NULL,
               $accountsColumnBank TEXT NOT NULL,
@@ -97,7 +96,7 @@ class DatabaseHelper {
 
     await db.execute('''
             CREATE TABLE $loansTable (
-              $columnId INTEGER PRIMARY KEY,
+              $columnId INTEGER PRIMARY KEY autoincrement,
               $columnUserId int(11) NOT NULL,
               $loansColumnName TEXT NOT NULL,
               $loansColumnAmount TEXT NOT NULL,
@@ -116,7 +115,7 @@ class DatabaseHelper {
 
     await db.execute('''
             CREATE TABLE $paymentsTable (
-              $columnId INTEGER PRIMARY KEY,
+              $columnId INTEGER PRIMARY KEY autoincrement,
               $columnUserId int(11) NOT NULL,
               $paymentsColumnLoan int(11) NOT NULL,
               $paymentsColumnAmount TEXT NOT NULL,
@@ -128,7 +127,7 @@ class DatabaseHelper {
 
     await db.execute('''
             CREATE TABLE $transactionsTable (
-              $columnId INTEGER PRIMARY KEY,
+              $columnId INTEGER PRIMARY KEY autoincrement,
               $columnUserId int(11) NOT NULL,
               $transactionsColumnName TEXT NOT NULL,
               $transactionsColumnDate DATETIME NOT NULL
@@ -143,10 +142,15 @@ class DatabaseHelper {
         'SELECT * FROM $userTable WHERE email = "$email" AND password = "$password"');
   }
 
+  Future<List<Map<String, dynamic>>> getLoansByStatus(String status) async {
+    return await _db
+        .rawQuery('SELECT * FROM $loansTable WHERE status = "$status"');
+  }
+
   // Inserts a row in the database where each key in the Map is a column name
   // and the value is the column value. The return value is the id of the
   // inserted row.
-  Future<int> insertUser(String table, Map<String, dynamic> row) async {
+  Future<int> insertInfo(String table, Map<String, dynamic> row) async {
     return await _db.insert(table, row);
   }
 

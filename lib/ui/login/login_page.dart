@@ -11,6 +11,7 @@ import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:loans_app/values/app_constants.dart';
 import 'package:loans_app/values/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,6 +36,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> initDB() async {
     await dbHelper.init();
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? email = prefs.getString('email');
+
+    if (email != null) {
+      AppRoutes.homeScreen.pushName();
+    }
   }
 
   @override
@@ -155,18 +163,9 @@ class _LoginPageState extends State<LoginPage> {
                     FilledButton(
                       onPressed: _formKey.currentState?.validate() ?? false
                           ? () async {
-                              final key = encrypt.Key.fromUtf8(
-                                  'XgLQ9MHyXKekNDQL5B7K9kEot3CIifx5');
-                              final iv = encrypt.IV.fromLength(16);
-
-                              final encrypter =
-                                  encrypt.Encrypter(encrypt.AES(key));
-
-                              final encrypted = encrypter
-                                  .encrypt(passwordController.text, iv: iv);
-
                               final res = await dbHelper.login(
-                                  emailController.text, encrypted.base64);
+                                  emailController.text,
+                                  passwordController.text);
 
                               if (res.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -175,6 +174,14 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 );
                               } else {
+                                final SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setInt('userId', res[0]['_id']);
+                                await prefs.setString(
+                                    'email', emailController.text);
+                                await prefs.setString('max_loan_amount',
+                                    res[0]['max_loan_amount']);
+
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('¡Inicio Correcto!'),

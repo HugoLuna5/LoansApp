@@ -1,10 +1,19 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:loans_app/core/models/transaction.dart';
 import 'package:loans_app/ui/accounts/accounts_screen.dart';
 import 'package:loans_app/ui/loans/loans_screen.dart';
+import 'package:loans_app/ui/login/login_page.dart';
 import 'package:loans_app/ui/transactions/transactions_screen.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
+
+final dbHelper = DatabaseHelper();
 
 class TabHomeScreen extends StatefulWidget {
   const TabHomeScreen({Key? key}) : super(key: key);
@@ -15,6 +24,30 @@ class TabHomeScreen extends StatefulWidget {
 
 class _TabHomeScreenState extends State<TabHomeScreen> {
   int currentIndex = 0;
+  String maxLoanAmount = "";
+
+  @override
+  void initState() {
+    super.initState();
+    initDB();
+  }
+
+  Future<void> initDB() async {
+    await dbHelper.init();
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? email = prefs.getString('email');
+    maxLoanAmount = prefs.getString('max_loan_amount') ?? '';
+
+    if (email == null) {
+      Navigator.pushAndRemoveUntil<void>(
+        context,
+        MaterialPageRoute<void>(
+            builder: (BuildContext context) => const LoginPage()),
+        ModalRoute.withName('/'),
+      );
+    }
+  }
 
   final List<Widget> _children = [
     const HomeScreen(),
@@ -54,7 +87,9 @@ class _TabHomeScreenState extends State<TabHomeScreen> {
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -125,13 +160,13 @@ class CurrentLoanInfoPayment extends StatelessWidget {
                           height: 35,
                           width: 110,
                           child: Directionality(
-                              textDirection: TextDirection.rtl,
+                              textDirection: ui.TextDirection.rtl,
                               child: FilledButton.icon(
                                   onPressed: () => {},
                                   icon: const Icon(
                                     CupertinoIcons.chevron_right,
                                     color: Colors.white,
-                                    textDirection: TextDirection.ltr,
+                                    textDirection: ui.TextDirection.ltr,
                                     size: 18,
                                   ),
                                   style: const ButtonStyle().copyWith(
@@ -364,6 +399,34 @@ class ActionItem extends StatelessWidget {
 class TopSection extends StatelessWidget {
   const TopSection({Key? key}) : super(key: key);
 
+  Future<Map<String, dynamic>> getInfo() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
+    final info = prefs.getString('max_loan_amount') ?? '0';
+    double aux = 0.0;
+    final loans = await dbHelper.getLoansByStatus("active");
+
+    for (var loan in loans) {
+      aux += double.parse(loan['amount'].toString());
+    }
+
+    return {
+      'amount': numberFormat.format(double.parse(info)),
+      'total': numberFormat.format(aux)
+    };
+  }
+
+  Future<bool> getStatus() async {
+    final loans = await dbHelper.getLoansByStatus("active");
+    bool status = false;
+
+    if (loans.isNotEmpty) {
+      status = true;
+    }
+
+    return status;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -374,147 +437,199 @@ class TopSection extends StatelessWidget {
           alignment: Alignment.topCenter,
           height: 250,
         ),
-        Container(
-          padding: const EdgeInsets.all(10),
-          alignment: Alignment.topCenter,
-          height: 380,
-          decoration: BoxDecoration(
-              color: color.AppColors.accentColor,
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40))),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                  child: Image.asset(
-                'assets/images/man.png',
-                width: 40,
-                height: 40,
-                alignment: Alignment.topLeft,
-              )),
-              Image.asset(
-                'assets/images/search.png',
-                width: 25,
-                height: 25,
-                color: Colors.white,
-              ),
-              const SizedBox(
-                width: 20,
-              ),
-              Image.asset(
-                'assets/images/bell.png',
-                width: 25,
-                height: 25,
-                color: Colors.white,
-              )
-            ],
-          ),
-        ),
-        Positioned(
-          top: 80,
-          left: 0,
-          right: 0,
-          child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 30),
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        FutureBuilder(
+            future: getStatus(),
+            builder: (c, s) {
+              if (s.hasData) {
+                var newBool = s.data;
+                return Container(
+                  padding: const EdgeInsets.all(10),
+                  alignment: Alignment.topCenter,
+                  height: newBool! ? 380 : 280,
+                  decoration: BoxDecoration(
+                      color: color.AppColors.accentColor,
+                      borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(40),
+                          bottomRight: Radius.circular(40))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Column(
+                      Expanded(
+                          child: GestureDetector(
+                        child: Image.asset(
+                          'assets/images/man.png',
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.topLeft,
+                        ),
+                        onTap: () async {
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          await prefs.remove('email');
+
+                          Navigator.pushAndRemoveUntil<void>(
+                            context,
+                            MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    const LoginPage()),
+                            ModalRoute.withName('/'),
+                          );
+                        },
+                      )),
+                      Image.asset(
+                        'assets/images/search.png',
+                        width: 25,
+                        height: 25,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Image.asset(
+                        'assets/images/bell.png',
+                        width: 25,
+                        height: 25,
+                        color: Colors.white,
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }),
+        FutureBuilder(
+            future: getInfo(),
+            builder: (c, s) {
+              if (s.hasData) {
+                final String maxAmount = s.data!['amount'].toString();
+                final String total = s.data!['total'].toString();
+                return Positioned(
+                  top: 80,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 30),
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Crédito disponible',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                                color: color.AppColors.disableColor),
-                          ),
-                          const Text(
-                            '\$18,645',
-                            style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                          )
-                        ],
-                      ),
-                      CircleAvatar(
-                        radius: 20,
-                        child: Image.asset(
-                          'assets/images/mx.png',
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: SizedBox(
-                      height: 5,
-                      child: LinearProgressIndicator(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        value: 0.9,
-                        semanticsLabel: "",
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Gastado',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                                color: color.AppColors.disableColor),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Crédito disponible',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                        color: color.AppColors.disableColor),
+                                  ),
+                                  Text(
+                                    maxAmount,
+                                    style: const TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black),
+                                  )
+                                ],
+                              ),
+                              CircleAvatar(
+                                radius: 20,
+                                child: Image.asset(
+                                  'assets/images/mx.png',
+                                ),
+                              )
+                            ],
                           ),
                           const SizedBox(
-                            width: 5,
+                            height: 20,
                           ),
-                          Container(
-                              padding: const EdgeInsets.only(top: 4, bottom: 4),
-                              child: const Text(
-                                '\$1395.29',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                              ))
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            'MX Pesos',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                                color: color.AppColors.accentColor),
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: SizedBox(
+                              height: 5,
+                              child: LinearProgressIndicator(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                                value: 0.9,
+                                semanticsLabel: "",
+                              ),
+                            ),
                           ),
-                          Icon(
-                            Icons.arrow_drop_down,
-                            color: color.AppColors.accentColor,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Gastado',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                        color: color.AppColors.disableColor),
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  Container(
+                                      padding: const EdgeInsets.only(
+                                          top: 4, bottom: 4),
+                                      child: Text(
+                                        total,
+                                        style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black),
+                                      ))
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'MX Pesos',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.normal,
+                                        color: color.AppColors.accentColor),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_drop_down,
+                                    color: color.AppColors.accentColor,
+                                  )
+                                ],
+                              )
+                            ],
                           )
                         ],
-                      )
-                    ],
-                  )
-                ],
-              )),
-        ),
-        const Positioned(
-            top: 260, left: 0, right: 0, child: CurrentLoanInfoPayment())
+                      )),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }),
+        FutureBuilder(
+            future: getStatus(),
+            builder: (c, s) {
+              if (s.hasData) {
+                var newBool = s.data;
+                return Visibility(
+                  visible: newBool!,
+                  child: const Positioned(
+                      top: 260,
+                      left: 0,
+                      right: 0,
+                      child: CurrentLoanInfoPayment()),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            })
       ],
     );
   }

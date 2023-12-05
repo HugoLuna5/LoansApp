@@ -1,12 +1,17 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:loans_app/values/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FullDataPage extends StatefulWidget {
   const FullDataPage({Key? key}) : super(key: key);
@@ -17,7 +22,7 @@ class FullDataPage extends StatefulWidget {
 
 class FullDataPageState extends State<FullDataPage> {
   int currentStep = 0;
-
+  final dbHelper = DatabaseHelper();
   final _formKeyPersonalData = GlobalKey<FormState>();
   TextEditingController birthdayController = TextEditingController();
   TextEditingController educationController = TextEditingController();
@@ -83,6 +88,17 @@ class FullDataPageState extends State<FullDataPage> {
 
   List<String> list = <String>['Modalidad', 'Tiempo Completo', 'Medio tiempo'];
   String dropdownValue = 'Modalidad';
+
+  @override
+  void initState() {
+    super.initState();
+    initDB();
+  }
+
+  Future<void> initDB() async {
+    await dbHelper.init();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = context.mediaQuerySize;
@@ -145,7 +161,7 @@ class FullDataPageState extends State<FullDataPage> {
                     return Row(
                       children: <Widget>[
                         FilledButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (currentStep == 0) {
                               if (_formKeyPersonalData.currentState
                                       ?.validate() ??
@@ -185,7 +201,58 @@ class FullDataPageState extends State<FullDataPage> {
                                           ?.validate() ??
                                       false)) {
                                 //go To home
-                                AppRoutes.homeScreen.pushName();
+                                final SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                final String? name = prefs.getString('name');
+                                final String? lastname =
+                                    prefs.getString('last_name');
+
+                                final String? email = prefs.getString('email');
+
+                                final String? password =
+                                    prefs.getString('password');
+
+                                final intValue = Random().nextInt(10000) + 3000;
+
+                                final Map<String, dynamic> info = {
+                                  'name': name,
+                                  'last_name': lastname,
+                                  'email': email,
+                                  'password': password,
+                                  'birthdate': birthdayController.text,
+                                  'education': educationController.text,
+                                  'ine': '',
+                                  'work': currentWorkController.text,
+                                  'earnings': earningsController.text,
+                                  'modality_work': dropdownValue,
+                                  'max_loan_amount': intValue.toString()
+                                };
+
+                                try {
+                                  final res =
+                                      await dbHelper.insertInfo("users", info);
+
+                                  if (res > 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('¡Registro completo!'),
+                                      ),
+                                    );
+                                    AppRoutes.loginScreen.pushName();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('¡Datos incorrectos!'),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('¡Datos incorrectos!'),
+                                    ),
+                                  );
+                                }
                               }
                             }
                           },
@@ -246,8 +313,8 @@ class FullDataPageState extends State<FullDataPage> {
                                 DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     initialDate: DateTime.now(),
-                                    firstDate: DateTime(
-                                        2000), //DateTime.now() - not to allow to choose before today.
+                                    firstDate: DateTime(1940, 1,
+                                        1), //DateTime.now() - not to allow to choose before today.
                                     lastDate: DateTime(2101));
 
                                 if (pickedDate != null) {
