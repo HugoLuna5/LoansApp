@@ -142,9 +142,14 @@ class DatabaseHelper {
         'SELECT * FROM $userTable WHERE email = "$email" AND password = "$password"');
   }
 
-  Future<List<Map<String, dynamic>>> getLoansByStatus(String status) async {
-    return await _db
-        .rawQuery('SELECT * FROM $loansTable WHERE status = "$status"');
+  Future<List<Map<String, dynamic>>> getLoansByStatus(
+      String status, int id) async {
+    return await _db.rawQuery(
+        'SELECT * FROM $loansTable WHERE status = "$status" AND _id = $id');
+  }
+
+  Future<List<Map<String, dynamic>>> getInfoByUser(String table, int id) async {
+    return await _db.rawQuery('SELECT * FROM $table WHERE _id = "$id"');
   }
 
   // Inserts a row in the database where each key in the Map is a column name

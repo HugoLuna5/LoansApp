@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -228,8 +228,9 @@ class TransactionSection extends StatelessWidget {
 
   Future<List<Map<String, dynamic>>> getTransactions() async {
     await dbHelper.init();
-
-    final result = dbHelper.queryAllRows('transactions');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final id = prefs.getInt('userId');
+    final result = dbHelper.getInfoByUser('transactions', id ?? 0);
 
     return result;
   }
@@ -414,8 +415,11 @@ class _TopSectionState extends State<TopSection> {
 
   checkStatus() async {
     await dbHelper.init();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    final loans = await dbHelper.getLoansByStatus("active");
+    final id = prefs.getInt('userId');
+
+    final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
     bool statusAux = false;
 
     if (loans.isNotEmpty) {
@@ -430,9 +434,10 @@ class _TopSectionState extends State<TopSection> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
     final info = prefs.getString('max_loan_amount') ?? '0';
+    final id = prefs.getInt('userId');
     double aux = 0.0;
 
-    final loans = await dbHelper.getLoansByStatus("active");
+    final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
 
     for (var loan in loans) {
       aux += double.parse(loan['amount'].toString());

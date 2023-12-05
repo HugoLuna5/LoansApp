@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
+import 'package:shared_preferences/shared_preferences.dart';
 
 final dbHelper = DatabaseHelper();
 
@@ -22,8 +23,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   Future<void> getTransactions() async {
     await dbHelper.init();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    final result = await dbHelper.queryAllRows('transactions');
+    final id = prefs.getInt('userId');
+    final result = await dbHelper.getInfoByUser('transactions', id ?? 0);
 
     setState(() {
       items = result;

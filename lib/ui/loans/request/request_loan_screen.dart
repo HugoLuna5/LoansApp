@@ -1,8 +1,15 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field_amount_loan.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+final dbHelper = DatabaseHelper();
 
 class RequestLoanScreen extends StatefulWidget {
   const RequestLoanScreen({Key? key}) : super(key: key);
@@ -30,6 +37,9 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
   List<String> reasons = <String>[
     'Necesidades diarias',
+    'Transporte',
+    'Comida',
+    'Entretenimiento'
   ];
   String reasonsDropdownValue = 'Necesidades diarias';
   bool checkedContract = false;
@@ -37,7 +47,24 @@ class RequestLoanState extends State<RequestLoanScreen> {
   @override
   void initState() {
     super.initState();
-    amountController.text = "500";
+    initDB();
+  }
+
+  Future<void> initDB() async {
+    await dbHelper.init();
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final info = prefs.getString('max_loan_amount') ?? '0';
+    double aux = 0.0;
+
+    final id = prefs.getInt('userId');
+
+    final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
+
+    for (var loan in loans) {
+      aux += double.parse(loan['amount'].toString());
+    }
+    amountController.text = (double.parse(info) - aux).toString();
   }
 
   @override

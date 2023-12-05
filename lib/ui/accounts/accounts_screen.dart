@@ -3,6 +3,7 @@ import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 import 'package:loans_app/values/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final dbHelper = DatabaseHelper();
 
@@ -24,8 +25,10 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> getLoans() async {
     await dbHelper.init();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    final result = await dbHelper.queryAllRows('accounts');
+    final id = prefs.getInt('userId');
+    final result = await dbHelper.getInfoByUser('accounts', id ?? 0);
 
     setState(() {
       items = result;
