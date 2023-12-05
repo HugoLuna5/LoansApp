@@ -2,7 +2,6 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:loans_app/core/models/transaction.dart';
 import 'package:loans_app/ui/accounts/accounts_screen.dart';
 import 'package:loans_app/ui/loans/loans_screen.dart';
 import 'package:loans_app/ui/login/login_page.dart';
@@ -397,14 +396,42 @@ class ActionItem extends StatelessWidget {
   }
 }
 
-class TopSection extends StatelessWidget {
-  const TopSection({Key? key}) : super(key: key);
+class TopSection extends StatefulWidget {
+  const TopSection({super.key});
+
+  @override
+  State<TopSection> createState() => _TopSectionState();
+}
+
+class _TopSectionState extends State<TopSection> {
+  bool status = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkStatus();
+  }
+
+  checkStatus() async {
+    await dbHelper.init();
+
+    final loans = await dbHelper.getLoansByStatus("active");
+    bool statusAux = false;
+
+    if (loans.isNotEmpty) {
+      statusAux = true;
+    }
+    setState(() {
+      status = statusAux;
+    });
+  }
 
   Future<Map<String, dynamic>> getInfo() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
     final info = prefs.getString('max_loan_amount') ?? '0';
     double aux = 0.0;
+
     final loans = await dbHelper.getLoansByStatus("active");
 
     for (var loan in loans) {
@@ -417,17 +444,6 @@ class TopSection extends StatelessWidget {
     };
   }
 
-  Future<bool> getStatus() async {
-    final loans = await dbHelper.getLoansByStatus("active");
-    bool status = false;
-
-    if (loans.isNotEmpty) {
-      status = true;
-    }
-
-    return status;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -438,70 +454,60 @@ class TopSection extends StatelessWidget {
           alignment: Alignment.topCenter,
           height: 250,
         ),
-        FutureBuilder(
-            future: getStatus(),
-            builder: (c, s) {
-              if (s.hasData) {
-                var newBool = s.data;
-                return Container(
-                  padding: const EdgeInsets.all(10),
-                  alignment: Alignment.topCenter,
-                  height: newBool! ? 380 : 280,
-                  decoration: BoxDecoration(
-                      color: color.AppColors.accentColor,
-                      borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(40),
-                          bottomRight: Radius.circular(40))),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                          child: GestureDetector(
-                        child: Image.asset(
-                          'assets/images/man.png',
-                          width: 40,
-                          height: 40,
-                          alignment: Alignment.topLeft,
-                        ),
-                        onTap: () async {
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          await prefs.remove('email');
+        Container(
+          padding: const EdgeInsets.all(10),
+          alignment: Alignment.topCenter,
+          height: status ? 380 : 280,
+          decoration: BoxDecoration(
+              color: color.AppColors.accentColor,
+              borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40))),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Expanded(
+                  child: GestureDetector(
+                child: Image.asset(
+                  'assets/images/man.png',
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.topLeft,
+                ),
+                onTap: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  await prefs.remove('email');
 
-                          Navigator.pushAndRemoveUntil<void>(
-                            context,
-                            MaterialPageRoute<void>(
-                                builder: (BuildContext context) =>
-                                    const LoginPage()),
-                            ModalRoute.withName('/'),
-                          );
-                        },
-                      )),
-                      Image.asset(
-                        'assets/images/search.png',
-                        width: 25,
-                        height: 25,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Image.asset(
-                        'assets/images/bell.png',
-                        width: 25,
-                        height: 25,
-                        color: Colors.white,
-                      )
-                    ],
-                  ),
-                );
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            }),
+                  Navigator.pushAndRemoveUntil<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                        builder: (BuildContext context) => const LoginPage()),
+                    ModalRoute.withName('/'),
+                  );
+                },
+              )),
+              Image.asset(
+                'assets/images/search.png',
+                width: 25,
+                height: 25,
+                color: Colors.white,
+              ),
+              const SizedBox(
+                width: 20,
+              ),
+              Image.asset(
+                'assets/images/bell.png',
+                width: 25,
+                height: 25,
+                color: Colors.white,
+              )
+            ],
+          ),
+        ),
         FutureBuilder(
-            future: getInfo(),
-            builder: (c, s) {
+          builder: (c, s) {
+            if (s.connectionState == ConnectionState.done) {
               if (s.hasData) {
                 final String maxAmount = s.data!['amount'].toString();
                 final String total = s.data!['total'].toString();
@@ -610,27 +616,17 @@ class TopSection extends StatelessWidget {
                         ],
                       )),
                 );
-              } else {
-                return const Center(child: CircularProgressIndicator());
               }
-            }),
-        FutureBuilder(
-            future: getStatus(),
-            builder: (c, s) {
-              if (s.hasData) {
-                var newBool = s.data;
-                return Visibility(
-                  visible: newBool!,
-                  child: const Positioned(
-                      top: 260,
-                      left: 0,
-                      right: 0,
-                      child: CurrentLoanInfoPayment()),
-                );
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            })
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+          future: getInfo(),
+        ),
+        Visibility(
+          visible: status,
+          child: const Positioned(
+              top: 260, left: 0, right: 0, child: CurrentLoanInfoPayment()),
+        )
       ],
     );
   }

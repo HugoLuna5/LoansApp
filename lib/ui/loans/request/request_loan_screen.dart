@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field_amount_loan.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
+import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
 
 class RequestLoanScreen extends StatefulWidget {
   const RequestLoanScreen({Key? key}) : super(key: key);
@@ -40,6 +42,9 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var today = DateTime.now();
+    var dateFormat = DateFormat('dd-MM-yyyy');
+    String dateStr = dateFormat.format(today);
     return Scaffold(
       backgroundColor: color.AppColors.backgroundColor,
       appBar: AppBar(
@@ -300,7 +305,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                           value: value,
                                           child: Text(
                                             value,
-                                            textDirection: TextDirection.ltr,
+                                            textDirection: ui.TextDirection.ltr,
                                             textAlign: TextAlign.center,
                                           ),
                                         );
@@ -317,12 +322,12 @@ class RequestLoanState extends State<RequestLoanScreen> {
                             const SizedBox(
                               height: 15,
                             ),
-                            const Row(
+                            Row(
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SizedBox(
+                                const SizedBox(
                                   width: 200,
                                   child: Text(
                                     "Fecha límite de pago",
@@ -330,12 +335,12 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         fontSize: 13, color: Colors.black),
                                   ),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 SizedBox(
                                     width: 80,
                                     child: Text(
-                                      "15/11/2023",
-                                      style: TextStyle(
+                                      dateStr,
+                                      style: const TextStyle(
                                           fontSize: 13,
                                           color: color.AppColors.secondary),
                                     ))
