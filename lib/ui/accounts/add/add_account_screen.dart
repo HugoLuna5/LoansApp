@@ -1,7 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field.dart';
 import 'package:loans_app/components/app_text_form_field_without_border.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddAccountScreen extends StatefulWidget {
   const AddAccountScreen({super.key});
@@ -10,12 +14,26 @@ class AddAccountScreen extends StatefulWidget {
   State<AddAccountScreen> createState() => AddAccountState();
 }
 
+final dbHelper = DatabaseHelper();
+
 class AddAccountState extends State<AddAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController accountNumberController = TextEditingController();
-  TextEditingController bankController = TextEditingController();
   TextEditingController ownerAccountController = TextEditingController();
   TextEditingController aliasAccountController = TextEditingController();
+
+  List<String> banks = <String>['BANAMEX', 'SANTANDER', 'BBVA'];
+  String banksDropdownValue = 'BANAMEX';
+
+  @override
+  void initState() {
+    super.initState();
+    initDB();
+  }
+
+  Future<void> initDB() async {
+    await dbHelper.init();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +90,7 @@ class AddAccountState extends State<AddAccountScreen> {
                             validator: (value) {
                               return value!.isEmpty
                                   ? 'Por favor, introduzca el número de Tarjeta, Cuenta o CLABE.'
-                                  : value.length > 10
+                                  : value.length > 8
                                       ? null
                                       : 'Número inválido';
                             },
@@ -87,15 +105,36 @@ class AddAccountState extends State<AddAccountScreen> {
                         const EdgeInsets.symmetric(vertical: 35, horizontal: 6),
                     child: Column(
                       children: [
-                        AppTextFormField(
-                          labelText: 'Banco',
-                          enabled: false,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (value) {
-                            _formKey.currentState?.validate();
-                          },
-                          controller: bankController,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Ingresa el número"),
+                            SizedBox(
+                                width: double.infinity,
+                                child: DropdownButton<String>(
+                                  items: banks.map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(
+                                        value,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      banksDropdownValue = value.toString();
+                                    });
+                                    banksDropdownValue = value.toString();
+                                  },
+                                  value: banksDropdownValue,
+                                  isExpanded: true,
+                                )),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 30,
                         ),
                         AppTextFormField(
                           labelText: 'Nombre y apellidos',
@@ -125,15 +164,34 @@ class AddAccountState extends State<AddAccountScreen> {
                           validator: (value) {
                             return value!.isEmpty
                                 ? 'Por favor, introduzca el alias'
-                                : value.length > 10
+                                : value.length > 4
                                     ? null
                                     : 'Alias inválido';
                           },
                           controller: aliasAccountController,
                         ),
                         FilledButton(
-                          onPressed: _formKey.currentState?.validate() ?? false
-                              ? () {
+                          onPressed: () async {
+                            final SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+
+                            if (accountNumberController.text.isNotEmpty &&
+                                ownerAccountController.text.isNotEmpty &&
+                                aliasAccountController.text.isNotEmpty) {
+                              final userId = prefs.getInt('userId');
+                              final info = {
+                                'user_id': userId,
+                                'number': accountNumberController.text,
+                                'bank': banksDropdownValue,
+                                'fullname': ownerAccountController.text,
+                                'alias': aliasAccountController.text
+                              };
+
+                              try {
+                                final result =
+                                    await dbHelper.insertInfo('accounts', info);
+
+                                if (result > 0) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -141,22 +199,36 @@ class AddAccountState extends State<AddAccountScreen> {
                                     ),
                                   );
                                   accountNumberController.clear();
-                                  bankController.clear();
                                   ownerAccountController.clear();
                                   aliasAccountController.clear();
                                   Navigator.pop(context);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('¡Datos incorrectos!'),
+                                    ),
+                                  );
                                 }
-                              : null,
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('¡Datos incorrectos!'),
+                                  ),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('¡Datos incorrectos!'),
+                                ),
+                              );
+                            }
+                          },
                           style: const ButtonStyle().copyWith(
                             shape: MaterialStateProperty.all(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                            ),
-                            backgroundColor: MaterialStateProperty.all(
-                              _formKey.currentState?.validate() ?? false
-                                  ? null
-                                  : Colors.grey.shade300,
                             ),
                           ),
                           child: const Text('AGREGAR'),
