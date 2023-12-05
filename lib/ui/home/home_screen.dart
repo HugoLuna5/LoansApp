@@ -227,99 +227,100 @@ class CurrentLoanInfoPayment extends StatelessWidget {
 class TransactionSection extends StatelessWidget {
   const TransactionSection({Key? key}) : super(key: key);
 
+  Future<List<Map<String, dynamic>>> getTransactions() async {
+    await dbHelper.init();
+
+    final result = dbHelper.queryAllRows('transactions');
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Movimientos',
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              Text(
-                'Ver todos',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                    color: color.AppColors.accentColor),
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          Container(
-            height: 300,
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(20)),
-            child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                itemCount: transactions().length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                              color:
-                                  transactions()[index].color.withOpacity(0.2),
-                              shape: BoxShape.circle),
-                          child: Icon(
-                            transactions()[index].iconData,
-                            color: transactions()[index].color,
-                            size: 17,
+      child: FutureBuilder(
+          future: getTransactions(),
+          builder: (c, s) {
+            if (s.hasData) {
+              final items = s.data;
+              return Visibility(
+                  visible: items!.isNotEmpty,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Movimientos',
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
                           ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                transactions()[index].title,
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                              ),
-                              Text(
-                                transactions()[index].date,
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.normal,
-                                    color: color.AppColors.disableColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          transactions()[index].amount,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-          )
-        ],
-      ),
+                          Text(
+                            'Ver todos',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: color.AppColors.accentColor),
+                          )
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Container(
+                        height: 300,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            itemCount: items!.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 10, bottom: 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            items[index]['name'],
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black),
+                                          ),
+                                          Text(
+                                            items[index]['date'],
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.normal,
+                                                color: color
+                                                    .AppColors.disableColor),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                      )
+                    ],
+                  ));
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          }),
     );
   }
 }
