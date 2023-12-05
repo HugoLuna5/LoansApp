@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:loans_app/core/models/transaction.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 
