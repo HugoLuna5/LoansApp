@@ -4,6 +4,7 @@ import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:loans_app/values/app_constants.dart';
 import 'package:loans_app/values/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -237,15 +238,18 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   FilledButton(
                     onPressed: _formKey.currentState?.validate() ?? false
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Registration Complete!'),
-                              ),
-                            );
-                            nameController.clear();
-                            emailController.clear();
-                            passwordController.clear();
+                        ? () async {
+                            final SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+
+                            await prefs.setString('name', nameController.text);
+                            await prefs.setString(
+                                'last_name', lastnameController.text);
+                            await prefs.setString(
+                                'email', emailController.text);
+                            await prefs.setString(
+                                'password', passwordController.text);
+
                             confirmPasswordController.clear();
 
                             AppRoutes.registerFullData.pushName();

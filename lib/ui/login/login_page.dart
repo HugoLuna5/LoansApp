@@ -1,8 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:loans_app/components/app_text_form_field.dart';
 import 'package:loans_app/resources/vectors.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:loans_app/values/app_constants.dart';
@@ -16,11 +20,22 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final dbHelper = DatabaseHelper();
   final _formKey = GlobalKey<FormState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   bool isObscure = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initDB();
+  }
+
+  Future<void> initDB() async {
+    await dbHelper.init();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,15 +154,36 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     FilledButton(
                       onPressed: _formKey.currentState?.validate() ?? false
-                          ? () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Inicio Correcto!'),
-                                ),
-                              );
-                              emailController.clear();
-                              passwordController.clear();
-                              AppRoutes.homeScreen.pushName();
+                          ? () async {
+                              final key = encrypt.Key.fromUtf8(
+                                  'XgLQ9MHyXKekNDQL5B7K9kEot3CIifx5');
+                              final iv = encrypt.IV.fromLength(16);
+
+                              final encrypter =
+                                  encrypt.Encrypter(encrypt.AES(key));
+
+                              final encrypted = encrypter
+                                  .encrypt(passwordController.text, iv: iv);
+
+                              final res = await dbHelper.login(
+                                  emailController.text, encrypted.base64);
+
+                              if (res.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('¡Datos incorrectos!'),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('¡Inicio Correcto!'),
+                                  ),
+                                );
+                                emailController.clear();
+                                passwordController.clear();
+                                AppRoutes.homeScreen.pushName();
+                              }
                             }
                           : null,
                       style: const ButtonStyle().copyWith(

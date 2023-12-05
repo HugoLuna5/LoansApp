@@ -81,59 +81,67 @@ class DatabaseHelper {
              $userColumnCurrentWork TEXT NOT NULL,
              $userColumnEarnings TEXT NOT NULL,
              $userColumnModalityWork TEXT NOT NULL,
-             $userColumnMaxLoan TEXT NOT NULL,
-          ),
+             $userColumnMaxLoan TEXT NOT NULL
+          )  ''');
 
-         CREATE TABLE $accountsTable (
-            $columnId INTEGER PRIMARY KEY,
-            $columnUserId int(11) NOT NULL,
-            $accountsColumnNumber TEXT NOT NULL,
-            $accountsColumnBank TEXT NOT NULL,
-            $accountsColumnFullname TEXT NOT NULL,
-            $accountsColumnAlias TEXT NOT NULL,
-         ),
+    await db.execute('''
+            CREATE TABLE $accountsTable (
+              $columnId INTEGER PRIMARY KEY,
+              $columnUserId int(11) NOT NULL,
+              $accountsColumnNumber TEXT NOT NULL,
+              $accountsColumnBank TEXT NOT NULL,
+              $accountsColumnFullname TEXT NOT NULL,
+              $accountsColumnAlias TEXT NOT NULL
+         )
+            ''');
 
-          CREATE TABLE $loansTable (
-            $columnId INTEGER PRIMARY KEY,
-            $columnUserId int(11) NOT NULL,
-            $loansColumnName TEXT NOT NULL,
-            $loansColumnAmount TEXT NOT NULL,
-            $loansColumnCat TEXT NOT NULL,
-            $loansColumnPeriodPayment TEXT NOT NULL,
-            $loansColumnNumberPayments int(11) NOT NULL,
-            $loansColumnPaymentPlan TEXT NOT NULL,
-            $loansColumnTotalCharges TEXT NOT NULL,
-            $loansColumnLimitDatePayment DATE NOT NULL,
-            $loansColumnAccountTransfer int(11) NOT NULL,
-            $loansColumnReason TEXT NOT NULL,
-            $loansColumnRequestedDate DATE NOT NULL,
-            $loansColumnStatus TEXT NOT NULL,
-         ),
+    await db.execute('''
+            CREATE TABLE $loansTable (
+              $columnId INTEGER PRIMARY KEY,
+              $columnUserId int(11) NOT NULL,
+              $loansColumnName TEXT NOT NULL,
+              $loansColumnAmount TEXT NOT NULL,
+              $loansColumnCat TEXT NOT NULL,
+              $loansColumnPeriodPayment TEXT NOT NULL,
+              $loansColumnNumberPayments int(11) NOT NULL,
+              $loansColumnPaymentPlan TEXT NOT NULL,
+              $loansColumnTotalCharges TEXT NOT NULL,
+              $loansColumnLimitDatePayment DATE NOT NULL,
+              $loansColumnAccountTransfer int(11) NOT NULL,
+              $loansColumnReason TEXT NOT NULL,
+              $loansColumnRequestedDate DATE NOT NULL,
+              $loansColumnStatus TEXT NOT NULL
+          )
+            ''');
 
+    await db.execute('''
+            CREATE TABLE $paymentsTable (
+              $columnId INTEGER PRIMARY KEY,
+              $columnUserId int(11) NOT NULL,
+              $paymentsColumnLoan int(11) NOT NULL,
+              $paymentsColumnAmount TEXT NOT NULL,
+              $paymentsColumnNumber int(11) NOT NULL,
+              $paymentsColumnLimitDate DATE NOT NULL,
+              $paymentsColumnPaymentDate DATETIME NOT NULL
+          )
+            ''');
 
-          CREATE TABLE $paymentsTable (
-            $columnId INTEGER PRIMARY KEY,
-            $columnUserId int(11) NOT NULL,
-            $paymentsColumnLoan int(11) NOT NULL,
-            $paymentsColumnAmount TEXT NOT NULL,
-            $paymentsColumnNumber int(11) NOT NULL,
-            $paymentsColumnLimitDate DATE NOT NULL,
-            $paymentsColumnPaymentDate DATETIME NOT NULL,
-         ),
-
-
-          CREATE TABLE $transactionsTable (
-            $columnId INTEGER PRIMARY KEY,
-            $columnUserId int(11) NOT NULL,
-            $transactionsColumnName TEXT NOT NULL,
-            $transactionsColumnDate DATETIME NOT NULL,
-         ),
-
-
-          ''');
+    await db.execute('''
+            CREATE TABLE $transactionsTable (
+              $columnId INTEGER PRIMARY KEY,
+              $columnUserId int(11) NOT NULL,
+              $transactionsColumnName TEXT NOT NULL,
+              $transactionsColumnDate DATETIME NOT NULL
+          )
+            ''');
   }
 
   // Helper methods
+  Future<List<Map<String, dynamic>>> login(
+      String email, String password) async {
+    return await _db.rawQuery(
+        'SELECT * FROM $userTable WHERE email = "$email" AND password = "$password"');
+  }
 
   // Inserts a row in the database where each key in the Map is a column name
   // and the value is the column value. The return value is the id of the
