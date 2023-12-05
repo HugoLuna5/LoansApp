@@ -886,6 +886,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
     var today = DateTime.now();
     var dateFormat = DateFormat('dd-MM-yyyy');
+    var dateFormatTime = DateFormat('dd-MM-yyyy hh:mm');
     String dateStr = dateFormat.format(today);
 
     final userId = prefs.getInt('userId');
@@ -896,15 +897,29 @@ class RequestLoanState extends State<RequestLoanScreen> {
       var accountInfo = accountsInfo[i];
 
       if (accountStr == '${accountInfo["bank"]} / (${accountInfo["number"]})') {
-        accountId = accountInfo[i]['_id'];
+        accountId = accountInfo['_id'];
       }
+    }
+
+    var comAux = com;
+    var period = '';
+    if (selectedButton == 0) {
+      comAux = com;
+      period = "Quincenal";
+    } else if (selectedButton == 1) {
+      comAux = 28;
+      period = "Mensual";
+    } else {
+      comAux = 33;
+      period = "Bimestral";
     }
 
     final info = {
       'user_id': userId,
       'name': "Credito $dateStr",
       'amount': amountController.text,
-      'loansColumnPeriodPayment': selectedButton,
+      'cat': comAux,
+      'period_payment': period,
       'number_payment': int.parse(numPaymentsDropdownValue),
       'payment_plan': paymentPlanDropdownValue,
       'total_charges': totalChargesValue.toString(),
@@ -915,8 +930,29 @@ class RequestLoanState extends State<RequestLoanScreen> {
       'status': 'active'
     };
 
+    final transactionRequest = {
+      'user_id': userId,
+      'name': 'Solicitud de prestamo: "Credito $dateStr',
+      'date': dateFormatTime.format(DateTime.now())
+    };
+
+    final transactionRequestAccepted = {
+      'user_id': userId,
+      'name': 'Perestamo aceptado: "Credito $dateStr',
+      'date':
+          dateFormatTime.format(DateTime.now().add(const Duration(minutes: 15)))
+    };
+
     try {
-      final result = await dbHelper.insertInfo('accounts', info);
+      final result = await dbHelper.insertInfo('loans', info);
+      await dbHelper.insertInfo('transactions', transactionRequest);
+      await dbHelper.insertInfo('transactions', transactionRequestAccepted);
+
+      final loans = await dbHelper.getLastLoans(userId ?? 0);
+
+      for (var i = 0; i < int.parse(numPaymentsDropdownValue); i++) {
+        addPayments(loans[0]['_id'], userId ?? 0, (i = 1));
+      }
 
       if (result > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -939,6 +975,46 @@ class RequestLoanState extends State<RequestLoanScreen> {
           content: Text('¡Datos incorrectos!'),
         ),
       );
+    }
+  }
+
+  addPayments(int loanId, int userId, int paymentNumber) async {
+    var daysToAdd = 15;
+
+    var comAux = com;
+    if (selectedButton == 0) {
+      daysToAdd = 15;
+      comAux = com;
+    } else if (selectedButton == 1) {
+      daysToAdd = 30;
+      comAux = 28;
+    } else {
+      daysToAdd = 61;
+      comAux = 33;
+    }
+    var today = DateTime.now();
+    var dateFormat = DateFormat('dd-MM-yyyy');
+    String dateStr =
+        dateFormat.format(today.add(Duration(days: daysToAdd * paymentNumber)));
+
+    final totalAmount = double.parse(globalAmount);
+
+    var calcTotalCharges = (comAux * totalAmount) / 100;
+
+    final paymentByPeriod =
+        (totalAmount + calcTotalCharges) / int.parse(numPaymentsDropdownValue);
+    try {
+      final payment = {
+        'user_id': userId,
+        'load_id': loanId,
+        'amount': paymentByPeriod.toString(),
+        'number': paymentNumber,
+        'limit_date': dateStr,
+        'payment_date': ''
+      };
+      dbHelper.insertInfo('payments', payment);
+    } catch (e) {
+      print(e);
     }
   }
 }

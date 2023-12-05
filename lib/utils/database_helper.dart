@@ -121,7 +121,7 @@ class DatabaseHelper {
               $paymentsColumnAmount TEXT NOT NULL,
               $paymentsColumnNumber int(11) NOT NULL,
               $paymentsColumnLimitDate DATE NOT NULL,
-              $paymentsColumnPaymentDate DATETIME NOT NULL
+              $paymentsColumnPaymentDate DATETIME  NULL
           )
             ''');
 
@@ -145,11 +145,17 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getLoansByStatus(
       String status, int id) async {
     return await _db.rawQuery(
-        'SELECT * FROM $loansTable WHERE status = "$status" AND user_id = $id');
+        'SELECT * FROM $loansTable WHERE status = "$status" AND user_id = $id  ORDER BY _id DESC');
+  }
+
+  Future<List<Map<String, dynamic>>> getLastLoans(int id) async {
+    return await _db.rawQuery(
+        'SELECT * FROM $loansTable WHERE user_id = $id ORDER BY _id DESC');
   }
 
   Future<List<Map<String, dynamic>>> getInfoByUser(String table, int id) async {
-    return await _db.rawQuery('SELECT * FROM $table WHERE user_id = $id');
+    return await _db.rawQuery(
+        'SELECT * FROM $table WHERE user_id = $id  ORDER BY _id DESC');
   }
 
   // Inserts a row in the database where each key in the Map is a column name
