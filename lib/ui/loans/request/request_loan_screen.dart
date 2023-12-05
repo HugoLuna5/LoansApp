@@ -18,37 +18,16 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
   List<String> paymentPlan = <String>[
     '04 DIC. \$87 MXN',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8'
   ];
   String paymentPlanDropdownValue = '04 DIC. \$87 MXN';
 
   List<String> accounts = <String>[
     'BANAMEX (1234)',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8'
   ];
   String accountDropdownValue = 'BANAMEX (1234)';
 
   List<String> reasons = <String>[
     'Necesidades diarias',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8'
   ];
   String reasonsDropdownValue = 'Necesidades diarias';
   bool checkedContract = false;
@@ -58,16 +37,6 @@ class RequestLoanState extends State<RequestLoanScreen> {
     super.initState();
     amountController.text = "500";
   }
-
-/*
-  floatingActionButton: FloatingActionButton(
-        onPressed: () => {},
-        child: const Icon(
-          Icons.check,
-          color: Colors.white,
-        ),
-      ),
- */
 
   @override
   Widget build(BuildContext context) {

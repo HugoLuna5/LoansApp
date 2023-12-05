@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
+// Sirve oara establecer configuraciones del diseño
+
 class AppTheme {
   static final textFormFieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(12),

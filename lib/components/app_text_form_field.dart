@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+//Campos de texto, configurables por parametros
+
 class AppTextFormField extends StatelessWidget {
   const AppTextFormField({
     required this.textInputAction,

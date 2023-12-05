@@ -1,6 +1,4 @@
-import 'dart:math';
-
-import 'package:flutter/material.dart';
+//Sirven para el manejo de la informacion que se presentara en la interfaz
 
 class Account {
   String alias;
@@ -17,8 +15,4 @@ List<Account> accounts() {
     Account('DULCE G **397', 'DULCE GALVAN CORDOVA', 'BANAMEX', ""),
     Account('JOSE C **002', 'JOSE ANGEL CAMARGO', 'SANTANDER', ""),
   ];
-}
-
-Color randomColor() {
-  return Color(Random().nextInt(0xffffffff)).withAlpha(0xff);
 }

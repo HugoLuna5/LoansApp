@@ -94,7 +94,7 @@ class FullDataPageState extends State<FullDataPage> {
             child: Column(
               children: [
                 Container(
-                  height: size.height * 0.24,
+                  height: size.height * 0.25,
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: const BoxDecoration(

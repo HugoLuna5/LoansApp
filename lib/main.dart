@@ -4,6 +4,7 @@ import 'package:loans_app/ui/accounts/add/add_account_screen.dart';
 import 'package:loans_app/ui/home/home_screen.dart';
 import 'package:loans_app/ui/loans/request/request_loan_screen.dart';
 import 'package:loans_app/ui/register/fulldata/fulldata_page.dart';
+import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_constants.dart';
 import 'package:loans_app/values/app_routes.dart';
 import 'package:loans_app/values/app_theme.dart';
@@ -11,8 +12,11 @@ import 'package:loans_app/values/app_theme.dart';
 import 'ui/login/login_page.dart';
 import 'ui/register/register_page.dart';
 
-void main() {
+final dbHelper = DatabaseHelper();
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dbHelper.init();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarIconBrightness: Brightness.light,

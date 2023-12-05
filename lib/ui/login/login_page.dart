@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loans_app/components/app_text_form_field.dart';
 import 'package:loans_app/resources/vectors.dart';
@@ -141,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                           ? () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Logged In!'),
+                                  content: Text('Inicio Correcto!'),
                                 ),
                               );
                               emailController.clear();

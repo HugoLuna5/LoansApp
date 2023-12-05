@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:loans_app/core/models/contacts.dart';
 import 'package:loans_app/core/models/transaction.dart';
 import 'package:loans_app/ui/accounts/accounts_screen.dart';
 import 'package:loans_app/ui/loans/loans_screen.dart';
@@ -64,7 +63,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           children: [
             TopSection(),
-            // ContactSection(),
             SizedBox(
               height: 20,
             ),
@@ -359,73 +357,6 @@ class ActionItem extends StatelessWidget {
               fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black),
         )
       ],
-    );
-  }
-}
-
-class ContactSection extends StatelessWidget {
-  const ContactSection({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 20),
-      height: 60,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-                color: color.AppColors.accentColor, shape: BoxShape.circle),
-            child: Image.asset(
-              'assets/images/search.png',
-              color: Colors.white,
-              width: 30,
-              height: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          Container(
-            height: 40,
-            width: 2,
-            color: color.AppColors.disableColor.withOpacity(0.3),
-          ),
-          Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: contacts().length,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              itemBuilder: (context, index) {
-                return Container(
-                  padding: const EdgeInsets.only(right: 10, left: 10),
-                  child: Column(
-                    children: [
-                      ClipOval(
-                        child: Image.asset(
-                          contacts()[index].imageLink,
-                          fit: BoxFit.cover,
-                          width: 40,
-                          height: 40,
-                        ),
-                      ),
-                      Text(
-                        contacts()[index].name,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black),
-                      )
-                    ],
-                  ),
-                );
-              },
-            ),
-          )
-        ],
-      ),
     );
   }
 }
