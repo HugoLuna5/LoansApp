@@ -28,6 +28,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     final id = prefs.getInt('userId');
+
     final result = await dbHelper.getInfoByUser('accounts', id ?? 0);
 
     setState(() {
@@ -92,16 +93,16 @@ class _AccountScreenState extends State<AccountScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              items[index]['alias'],
+                              "${items[index]['alias']} ",
                               style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black),
                             ),
                             Text(
-                              items[index]['fullname'],
+                              "${items[index]['fullname']} / ${items[index]['number']}",
                               style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.normal,
                                   color: color.AppColors.disableColor),
                             ),

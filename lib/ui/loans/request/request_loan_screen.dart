@@ -1,10 +1,11 @@
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field_amount_loan.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'dart:ui' as ui;
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,20 +21,30 @@ class RequestLoanScreen extends StatefulWidget {
 
 class RequestLoanState extends State<RequestLoanScreen> {
   final _formKey = GlobalKey<FormState>();
+  double globalMaxAmount = 0;
+  String globalAmount = "";
   TextEditingController amountController = TextEditingController();
 
-  List<String> list = <String>['1', '2', '3', '4', '5', '6', '7', '8'];
+  List<String> list = <String>[
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10'
+  ];
   String numPaymentsDropdownValue = '1';
 
-  List<String> paymentPlan = <String>[
-    '04 DIC. \$87 MXN',
-  ];
-  String paymentPlanDropdownValue = '04 DIC. \$87 MXN';
+  List<String> paymentPlan = <String>[];
+  String paymentPlanDropdownValue = '';
 
-  List<String> accounts = <String>[
-    'BANAMEX (1234)',
-  ];
-  String accountDropdownValue = 'BANAMEX (1234)';
+  List<Map<String, dynamic>> accountsInfo = [];
+  List<String> accounts = <String>[];
+  String accountDropdownValue = '';
 
   List<String> reasons = <String>[
     'Necesidades diarias',
@@ -43,6 +54,12 @@ class RequestLoanState extends State<RequestLoanScreen> {
   ];
   String reasonsDropdownValue = 'Necesidades diarias';
   bool checkedContract = false;
+  int com = 22;
+  int comAux = 22;
+  int selectedButton = 0;
+  String paymentFirstimitDate = '';
+  String totalCharges = "";
+  double totalChargesValue = 0;
 
   @override
   void initState() {
@@ -52,7 +69,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
   Future<void> initDB() async {
     await dbHelper.init();
-
+    var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final info = prefs.getString('max_loan_amount') ?? '0';
     double aux = 0.0;
@@ -64,14 +81,94 @@ class RequestLoanState extends State<RequestLoanScreen> {
     for (var loan in loans) {
       aux += double.parse(loan['amount'].toString());
     }
-    amountController.text = (double.parse(info) - aux).toString();
+
+    final totalAmount = (double.parse(info) - aux);
+
+    var calcTotalCharges = (com * totalAmount) / 100;
+
+    amountController.text = totalAmount.toString();
+
+    final accountsDB = await dbHelper.getInfoByUser('accounts', id ?? 0);
+    List<String> accountsAux = <String>[];
+    List<String> paymentPlanAux = <String>[];
+    for (var account in accountsDB) {
+      accountsInfo.add(account);
+      accountsAux.add('${account["bank"]} / (${account["number"]})');
+    }
+
+    var today = DateTime.now();
+    var dateFormat = DateFormat('dd-MM-yyyy');
+    var dateFormatPaymentPlan = DateFormat('MMMd');
+    String dateStr = dateFormat.format(today.add(const Duration(days: 15)));
+
+    final paymentByPeriod =
+        (totalAmount + calcTotalCharges) / int.parse(numPaymentsDropdownValue);
+
+    final valuePaymentPlan =
+        "${dateFormatPaymentPlan.format(today.add(const Duration(days: 15)))}. ${numberFormat.format(paymentByPeriod)} MXN";
+
+    paymentPlanAux.add(valuePaymentPlan);
+
+    setState(() {
+      globalMaxAmount = totalAmount;
+      globalAmount = totalAmount.toString();
+      paymentFirstimitDate = dateStr;
+      accounts = accountsAux;
+      totalChargesValue = calcTotalCharges;
+      totalCharges = numberFormat.format(calcTotalCharges);
+      paymentPlan = paymentPlanAux;
+      paymentPlanDropdownValue = valuePaymentPlan;
+
+      if (accounts.isNotEmpty) {
+        accountDropdownValue = accounts[0];
+      }
+    });
+  }
+
+  recalculate() {
+    final totalAmount = double.parse(globalAmount);
+    var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
+    List<String> paymentPlanAux = <String>[];
+    var daysToAdd = 15;
+
+    var comAux = com;
+    if (selectedButton == 0) {
+      daysToAdd = 15;
+      comAux = com;
+    } else if (selectedButton == 1) {
+      daysToAdd = 30;
+      comAux = 28;
+    } else {
+      daysToAdd = 61;
+      comAux = 33;
+    }
+
+    var calcTotalCharges = (comAux * totalAmount) / 100;
+
+    var today = DateTime.now();
+    var dateFormatPaymentPlan = DateFormat('MMMd');
+
+    final paymentByPeriod =
+        (totalAmount + calcTotalCharges) / int.parse(numPaymentsDropdownValue);
+
+    final dateFormatedCompleted =
+        dateFormatPaymentPlan.format(today.add(Duration(days: daysToAdd)));
+
+    final valuePaymentPlan =
+        "$dateFormatedCompleted. ${numberFormat.format(paymentByPeriod)} MXN";
+
+    paymentPlanAux.add(valuePaymentPlan);
+    setState(() {
+      comAux = comAux;
+      totalChargesValue = calcTotalCharges;
+      totalCharges = numberFormat.format(calcTotalCharges);
+      paymentPlan = paymentPlanAux;
+      paymentPlanDropdownValue = valuePaymentPlan;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var today = DateTime.now();
-    var dateFormat = DateFormat('dd-MM-yyyy');
-    String dateStr = dateFormat.format(today);
     return Scaffold(
       backgroundColor: color.AppColors.backgroundColor,
       appBar: AppBar(
@@ -147,7 +244,37 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                           MaterialStateProperty.all(
                                               color.AppColors.primaryColor),
                                     ),
-                                    onPressed: () => {},
+                                    onPressed: () {
+                                      try {
+                                        final current =
+                                            double.parse(globalAmount) - 100;
+
+                                        if (current > 0) {
+                                          amountController.text =
+                                              current.toString();
+                                          setState(() {
+                                            globalAmount = current.toString();
+                                          });
+                                          recalculate();
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  '¡La cantidad minima que puedes solicitar es: \$100 MXN!'),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('¡Datos incorrectos!'),
+                                          ),
+                                        );
+                                      }
+                                    },
                                     icon: const Icon(
                                       Icons.remove,
                                       color: Colors.white,
@@ -164,6 +291,40 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                     keyboardType: TextInputType.number,
                                     textInputAction: TextInputAction.next,
                                     onChanged: (value) {
+                                      try {
+                                        final current = double.parse(value);
+
+                                        if (current <= globalMaxAmount) {
+                                          amountController.text = value;
+                                          setState(() {
+                                            globalAmount = current.toString();
+                                          });
+                                          recalculate();
+                                        } else {
+                                          var numberFormat =
+                                              NumberFormat.currency(
+                                                  locale: 'es_MX',
+                                                  symbol: "\$");
+                                          final max = numberFormat
+                                              .format(globalMaxAmount);
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  '¡La cantidad maxima que puedes solicitar es: $max MXN!'),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('¡Datos incorrectos!'),
+                                          ),
+                                        );
+                                      }
+
                                       _formKey.currentState?.validate();
                                     },
                                     validator: (value) {
@@ -191,7 +352,43 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                           MaterialStateProperty.all(
                                               color.AppColors.primaryColor),
                                     ),
-                                    onPressed: () => {},
+                                    onPressed: () {
+                                      try {
+                                        final current =
+                                            double.parse(globalAmount) + 100;
+
+                                        if (current <= globalMaxAmount) {
+                                          amountController.text =
+                                              current.toString();
+                                          setState(() {
+                                            globalAmount = current.toString();
+                                          });
+                                          recalculate();
+                                        } else {
+                                          var numberFormat =
+                                              NumberFormat.currency(
+                                                  locale: 'es_MX',
+                                                  symbol: "\$");
+                                          final max = numberFormat
+                                              .format(globalMaxAmount);
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  '¡La cantidad maxima que puedes solicitar es: $max MXN!'),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('¡Datos incorrectos!'),
+                                          ),
+                                        );
+                                      }
+                                    },
                                     icon: const Icon(
                                       Icons.add,
                                       color: Colors.white,
@@ -237,11 +434,28 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                   width: 105,
                                   height: 30,
                                   child: FilledButton(
-                                      onPressed: () => {},
+                                      onPressed: () {
+                                        final today = DateTime.now();
+                                        var dateFormat =
+                                            DateFormat('dd-MM-yyyy');
+
+                                        String dateStr = dateFormat.format(today
+                                            .add(const Duration(days: 15)));
+
+                                        setState(
+                                          () {
+                                            selectedButton = 0;
+                                            paymentFirstimitDate = dateStr;
+                                          },
+                                        );
+                                        recalculate();
+                                      },
                                       style: const ButtonStyle().copyWith(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                color.AppColors.primaryColor),
+                                        backgroundColor: selectedButton == 0
+                                            ? MaterialStateProperty.all(
+                                                color.AppColors.primaryColor)
+                                            : MaterialStateProperty.all(
+                                                color.AppColors.grey),
                                         shape: MaterialStateProperty.all(
                                           RoundedRectangleBorder(
                                             borderRadius:
@@ -262,10 +476,26 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                   width: 105,
                                   height: 30,
                                   child: FilledButton(
-                                      onPressed: () => {},
+                                      onPressed: () {
+                                        final today = DateTime.now();
+                                        var dateFormat =
+                                            DateFormat('dd-MM-yyyy');
+
+                                        String dateStr = dateFormat.format(today
+                                            .add(const Duration(days: 30)));
+                                        setState(
+                                          () {
+                                            selectedButton = 1;
+                                            paymentFirstimitDate = dateStr;
+                                          },
+                                        );
+                                        recalculate();
+                                      },
                                       style: const ButtonStyle().copyWith(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
+                                        backgroundColor: selectedButton == 1
+                                            ? MaterialStateProperty.all(
+                                                color.AppColors.primaryColor)
+                                            : MaterialStateProperty.all(
                                                 color.AppColors.grey),
                                         shape: MaterialStateProperty.all(
                                           RoundedRectangleBorder(
@@ -287,10 +517,26 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                   width: 105,
                                   height: 30,
                                   child: FilledButton(
-                                      onPressed: () => {},
+                                      onPressed: () {
+                                        final today = DateTime.now();
+                                        var dateFormat =
+                                            DateFormat('dd-MM-yyyy');
+
+                                        String dateStr = dateFormat.format(today
+                                            .add(const Duration(days: 61)));
+                                        setState(
+                                          () {
+                                            selectedButton = 2;
+                                            paymentFirstimitDate = dateStr;
+                                          },
+                                        );
+                                        recalculate();
+                                      },
                                       style: const ButtonStyle().copyWith(
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
+                                        backgroundColor: selectedButton == 2
+                                            ? MaterialStateProperty.all(
+                                                color.AppColors.primaryColor)
+                                            : MaterialStateProperty.all(
                                                 color.AppColors.grey),
                                         shape: MaterialStateProperty.all(
                                           RoundedRectangleBorder(
@@ -338,8 +584,11 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         );
                                       }).toList(),
                                       onChanged: (value) {
-                                        numPaymentsDropdownValue =
-                                            value.toString();
+                                        setState(() {
+                                          numPaymentsDropdownValue =
+                                              value.toString();
+                                        });
+                                        recalculate();
                                       },
                                       value: numPaymentsDropdownValue,
                                       isExpanded: true,
@@ -366,7 +615,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                 SizedBox(
                                     width: 80,
                                     child: Text(
-                                      dateStr,
+                                      paymentFirstimitDate,
                                       style: const TextStyle(
                                           fontSize: 13,
                                           color: color.AppColors.secondary),
@@ -395,7 +644,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 const SizedBox(
-                                  width: 170,
+                                  width: 165,
                                   child: Text(
                                     "Plan de pago",
                                     style: TextStyle(
@@ -404,7 +653,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                 ),
                                 const Spacer(),
                                 SizedBox(
-                                    width: 150,
+                                    width: 180,
                                     child: DropdownButton<String>(
                                       items: paymentPlan.map((String value) {
                                         return DropdownMenuItem<String>(
@@ -417,10 +666,14 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         );
                                       }).toList(),
                                       onChanged: (value) {
-                                        paymentPlanDropdownValue =
-                                            value.toString();
+                                        setState(() {
+                                          paymentPlanDropdownValue =
+                                              value.toString();
+                                        });
                                       },
-                                      value: paymentPlanDropdownValue,
+                                      value: paymentPlanDropdownValue.isNotEmpty
+                                          ? paymentPlanDropdownValue
+                                          : null,
                                       isExpanded: true,
                                     ))
                               ],
@@ -428,12 +681,12 @@ class RequestLoanState extends State<RequestLoanScreen> {
                             const SizedBox(
                               height: 15,
                             ),
-                            const Row(
+                            Row(
                               mainAxisSize: MainAxisSize.max,
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                SizedBox(
+                                const SizedBox(
                                   width: 200,
                                   child: Text(
                                     "Cargos totales",
@@ -441,12 +694,12 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         fontSize: 13, color: Colors.black),
                                   ),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 SizedBox(
-                                    width: 80,
+                                    width: 95,
                                     child: Text(
-                                      "\$120 MXN",
-                                      style: TextStyle(
+                                      '$totalCharges MXN ',
+                                      style: const TextStyle(
                                           fontSize: 13,
                                           color: color.AppColors.secondary),
                                     ))
@@ -510,7 +763,9 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                       onChanged: (value) {
                                         accountDropdownValue = value.toString();
                                       },
-                                      value: accountDropdownValue,
+                                      value: accountDropdownValue.isNotEmpty
+                                          ? accountDropdownValue
+                                          : null,
                                       isExpanded: true,
                                     ))
                               ],
@@ -559,7 +814,10 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         );
                                       }).toList(),
                                       onChanged: (value) {
-                                        reasonsDropdownValue = value.toString();
+                                        setState(() {
+                                          reasonsDropdownValue =
+                                              value.toString();
+                                        });
                                       },
                                       value: reasonsDropdownValue,
                                       isExpanded: true,
@@ -578,7 +836,9 @@ class RequestLoanState extends State<RequestLoanScreen> {
                         Checkbox(
                           value: checkedContract,
                           onChanged: (bool? newValue) {
-                            checkedContract = newValue ?? false;
+                            setState(() {
+                              checkedContract = newValue ?? false;
+                            });
                           },
                         ),
                         Flexible(
@@ -600,19 +860,13 @@ class RequestLoanState extends State<RequestLoanScreen> {
                     FilledButton(
                       onPressed: _formKey.currentState?.validate() ?? false
                           ? () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Solicitud realizada correctamente!'),
-                                ),
-                              );
-                              amountController.clear();
-                              Navigator.pop(context);
+                              requestLoan(context);
                             }
                           : null,
                       style: const ButtonStyle().copyWith(
                         backgroundColor: MaterialStateProperty.all(
-                          _formKey.currentState?.validate() ?? false
+                          (_formKey.currentState?.validate() ?? false) &&
+                                  checkedContract
                               ? null
                               : Colors.grey.shade300,
                         ),
@@ -625,5 +879,66 @@ class RequestLoanState extends State<RequestLoanScreen> {
         ),
       ),
     );
+  }
+
+  requestLoan(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    var today = DateTime.now();
+    var dateFormat = DateFormat('dd-MM-yyyy');
+    String dateStr = dateFormat.format(today);
+
+    final userId = prefs.getInt('userId');
+    var accountId = 0;
+
+    for (var i = 0; i < accounts.length; i++) {
+      var accountStr = accounts[i];
+      var accountInfo = accountsInfo[i];
+
+      if (accountStr == '${accountInfo["bank"]} / (${accountInfo["number"]})') {
+        accountId = accountInfo[i]['_id'];
+      }
+    }
+
+    final info = {
+      'user_id': userId,
+      'name': "Credito $dateStr",
+      'amount': amountController.text,
+      'loansColumnPeriodPayment': selectedButton,
+      'number_payment': int.parse(numPaymentsDropdownValue),
+      'payment_plan': paymentPlanDropdownValue,
+      'total_charges': totalChargesValue.toString(),
+      'limit_date': paymentFirstimitDate,
+      'account_transfer': accountId,
+      'reason': reasonsDropdownValue,
+      'requested_date': dateStr,
+      'status': 'active'
+    };
+
+    try {
+      final result = await dbHelper.insertInfo('accounts', info);
+
+      if (result > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Solicitud realizada correctamente!'),
+          ),
+        );
+        amountController.clear();
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Datos incorrectos!'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Datos incorrectos!'),
+        ),
+      );
+    }
   }
 }
