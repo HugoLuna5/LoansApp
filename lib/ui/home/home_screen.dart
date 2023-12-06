@@ -112,114 +112,201 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class CurrentLoanInfoPayment extends StatelessWidget {
-  const CurrentLoanInfoPayment({Key? key}) : super(key: key);
+class CurrentLoanInfoPayment extends StatefulWidget {
+  const CurrentLoanInfoPayment({super.key});
+
+  @override
+  State<CurrentLoanInfoPayment> createState() => _CurrentLoanInfoPaymentState();
+}
+
+class _CurrentLoanInfoPaymentState extends State<CurrentLoanInfoPayment> {
+  List<Map<String, dynamic>> items = [];
+  int userId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getLastLoan();
+  }
+
+  Future<void> getLastLoan() async {
+    await dbHelper.init();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final id = prefs.getInt('userId');
+    final result = await dbHelper.getLoansByStatus('active', id ?? 0);
+
+    if (result.isNotEmpty) {
+      final res = await dbHelper.getPendingPayments(result[0]["_id"]);
+      setState(() {
+        items = res;
+        userId = id ?? 0;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
+    var amount = '';
+    var limitDate = "";
+    var paymentId = 0;
+
+    if (items.isNotEmpty) {
+      amount = numberFormat.format(double.parse(items[0]['amount']));
+      limitDate = items[0]['limit_date'];
+      paymentId = items[0]['_id'];
+    }
+
     return Stack(
       children: [
-        Container(
-            margin: const EdgeInsets.symmetric(horizontal: 30),
-            padding: const EdgeInsets.all(0),
-            decoration: BoxDecoration(
-                color: Colors.amber, borderRadius: BorderRadius.circular(20)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+        Visibility(
+            visible: items.isNotEmpty,
+            child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'A pagar',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.normal,
-                                  color: color.AppColors.disableColor),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'A pagar',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.normal,
+                                      color: color.AppColors.disableColor),
+                                ),
+                                Text(
+                                  amount,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
+                                )
+                              ],
                             ),
-                            const Text(
-                              '\$984,39',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
+                            SizedBox(
+                              height: 35,
+                              width: 110,
+                              child: Directionality(
+                                  textDirection: ui.TextDirection.rtl,
+                                  child: FilledButton.icon(
+                                      onPressed: () {
+                                        addPayment(context, paymentId, amount);
+                                      },
+                                      icon: const Icon(
+                                        CupertinoIcons.chevron_right,
+                                        color: Colors.white,
+                                        textDirection: ui.TextDirection.ltr,
+                                        size: 18,
+                                      ),
+                                      style: const ButtonStyle().copyWith(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                color.AppColors.accentColor),
+                                        iconColor: MaterialStateProperty.all(
+                                            Colors.white),
+                                        shape: MaterialStateProperty.all(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                        ),
+                                      ),
+                                      label: const Text(
+                                        "Pagar",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 14),
+                                      ))),
                             )
                           ],
                         ),
-                        SizedBox(
-                          height: 35,
-                          width: 110,
-                          child: Directionality(
-                              textDirection: ui.TextDirection.rtl,
-                              child: FilledButton.icon(
-                                  onPressed: () => {},
-                                  icon: const Icon(
-                                    CupertinoIcons.chevron_right,
-                                    color: Colors.white,
-                                    textDirection: ui.TextDirection.ltr,
-                                    size: 18,
-                                  ),
-                                  style: const ButtonStyle().copyWith(
-                                    backgroundColor: MaterialStateProperty.all(
-                                        color.AppColors.accentColor),
-                                    iconColor:
-                                        MaterialStateProperty.all(Colors.white),
-                                    shape: MaterialStateProperty.all(
-                                      RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                    ),
-                                  ),
-                                  label: const Text(
-                                    "Pagar",
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 14),
-                                  ))),
-                        )
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Fecha límite de pago:',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Container(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: const Text(
-                            '15/11/2023',
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Fecha límite de pago:',
                             style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.normal,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.black),
-                          ))
-                    ],
-                  ),
-                )
-              ],
-            )),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                              padding: const EdgeInsets.only(top: 4, bottom: 4),
+                              child: Text(
+                                limitDate,
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.black),
+                              ))
+                        ],
+                      ),
+                    )
+                  ],
+                ))),
       ],
     );
+  }
+
+  addPayment(BuildContext context, int paymentId, String amount) async {
+    var today = DateTime.now();
+    var dateFormatTime = DateFormat('dd-MM-yyyy hh:mm');
+    final infoUpdate = {
+      'payment_date': dateFormatTime.format(today),
+      '_id': paymentId
+    };
+
+    final transactionRequestAccepted = {
+      'user_id': userId,
+      'name': 'Pago de $amount realizado.',
+      'date': dateFormatTime.format(DateTime.now())
+    };
+
+    try {
+      final res = await dbHelper.update('payments', infoUpdate);
+      await dbHelper.insertInfo('transactions', transactionRequestAccepted);
+      if (res > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Pago agregado correctamente!'),
+          ),
+        );
+        setState(() {});
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Ocurrio un error al procesar el pago!'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Ocurrio un error al procesar el pago!'),
+        ),
+      );
+    }
   }
 }
 
@@ -230,7 +317,7 @@ class TransactionSection extends StatelessWidget {
     await dbHelper.init();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final id = prefs.getInt('userId');
-    final result = dbHelper.getInfoByUser('transactions', id ?? 0);
+    final result = await dbHelper.getInfoByUser('transactions', id ?? 0);
 
     return result;
   }
@@ -423,11 +510,14 @@ class _TopSectionState extends State<TopSection> {
     bool statusAux = false;
 
     if (loans.isNotEmpty) {
-      statusAux = true;
+      final res = await dbHelper.getPendingPayments(loans[0]["_id"]);
+
+      if (res.isEmpty) {
+        setState(() {
+          status = false;
+        });
+      }
     }
-    setState(() {
-      status = statusAux;
-    });
   }
 
   Future<Map<String, dynamic>> getInfo() async {

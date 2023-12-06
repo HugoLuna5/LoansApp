@@ -148,6 +148,13 @@ class DatabaseHelper {
         'SELECT * FROM $loansTable WHERE status = "$status" AND user_id = $id  ORDER BY _id DESC');
   }
 
+  Future<List<Map<String, dynamic>>> getPendingPayments(
+    int loanId,
+  ) async {
+    return await _db.rawQuery(
+        'SELECT * FROM $paymentsTable WHERE  _id = $loanId AND payment_date = ""  ORDER BY _id DESC');
+  }
+
   Future<List<Map<String, dynamic>>> getLastLoans(int id) async {
     return await _db.rawQuery(
         'SELECT * FROM $loansTable WHERE user_id = $id ORDER BY _id DESC');
