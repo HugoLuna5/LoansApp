@@ -496,6 +496,7 @@ class _TopSectionState extends State<TopSection> {
   String amount = "";
   String total = "";
   String current = "";
+  double percentAvailable = 0;
 
   @override
   void initState() {
@@ -520,11 +521,16 @@ class _TopSectionState extends State<TopSection> {
 
     final currentMaxAmount = double.parse(info) - aux;
 
+    final percentAux = (aux / double.parse(info)) * 100;
+
+    final percent = ((percentAux - 0) / (100 - 0)).clamp(0, 1).toDouble();
+
     if (loans.isNotEmpty) {
       final res = await dbHelper.getPendingPayments(loans[0]["_id"]);
 
       if (res.isEmpty) {
         setState(() {
+          percentAvailable = percent;
           status = false;
           amount = numberFormat.format(double.parse(info));
           total = numberFormat.format(aux);
@@ -534,6 +540,7 @@ class _TopSectionState extends State<TopSection> {
       }
     } else {
       setState(() {
+        percentAvailable = percent;
         status = false;
         amount = numberFormat.format(double.parse(info));
         total = numberFormat.format(aux);
@@ -649,13 +656,14 @@ class _TopSectionState extends State<TopSection> {
                   const SizedBox(
                     height: 20,
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
                     child: SizedBox(
                       height: 5,
                       child: LinearProgressIndicator(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        value: 0.9,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
+                        value: percentAvailable,
                         semanticsLabel: "",
                       ),
                     ),

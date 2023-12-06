@@ -952,11 +952,10 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
       final loans = await dbHelper.getLastLoans(userId ?? 0);
 
-      for (var i = 0; i < int.parse(numPaymentsDropdownValue); i++) {
-        await addPayments(loans[0]['_id'], userId ?? 0, (i = 1));
-      }
-
       if (result > 0) {
+        for (var i = 0; i < int.parse(numPaymentsDropdownValue); i++) {
+          await addPayments(loans[0]['_id'], userId ?? 0, (i + 1));
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Solicitud realizada correctamente!'),
@@ -972,7 +971,6 @@ class RequestLoanState extends State<RequestLoanScreen> {
         );
       }
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('¡Datos incorrectos!'),
@@ -981,7 +979,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
     }
   }
 
-  addPayments(int loanId, int userId, int paymentNumber) async {
+  Future<void> addPayments(int loanId, int userId, int paymentNumber) async {
     var daysToAdd = 15;
 
     var comAux = com;
@@ -1013,11 +1011,8 @@ class RequestLoanState extends State<RequestLoanScreen> {
         'amount': paymentByPeriod.toString(),
         'number': paymentNumber,
         'limit_date': dateStr,
-        'payment_date': ''
       };
-      dbHelper.insertInfo('payments', payment);
-    } catch (e) {
-      print(e);
-    }
+      await dbHelper.insertInfo('payments', payment);
+    } catch (e) {}
   }
 }
