@@ -493,6 +493,9 @@ class TopSection extends StatefulWidget {
 
 class _TopSectionState extends State<TopSection> {
   bool status = true;
+  String amount = "";
+  String total = "";
+  String current = "";
 
   @override
   void initState() {
@@ -502,26 +505,9 @@ class _TopSectionState extends State<TopSection> {
 
   checkStatus() async {
     await dbHelper.init();
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    final id = prefs.getInt('userId');
-
-    final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
-
-    if (loans.isNotEmpty) {
-      final res = await dbHelper.getPendingPayments(loans[0]["_id"]);
-
-      if (res.isEmpty) {
-        setState(() {
-          status = false;
-        });
-      }
-    }
-  }
-
-  Future<Map<String, dynamic>> getInfo() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
     var numberFormat = NumberFormat.currency(locale: 'es_MX', symbol: "\$");
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     final info = prefs.getString('max_loan_amount') ?? '0';
     final id = prefs.getInt('userId');
     double aux = 0.0;
@@ -534,11 +520,27 @@ class _TopSectionState extends State<TopSection> {
 
     final currentMaxAmount = double.parse(info) - aux;
 
-    return {
-      'amount': numberFormat.format(double.parse(info)),
-      'total': numberFormat.format(aux),
-      'current': numberFormat.format(currentMaxAmount)
-    };
+    if (loans.isNotEmpty) {
+      final res = await dbHelper.getPendingPayments(loans[0]["_id"]);
+
+      if (res.isEmpty) {
+        setState(() {
+          status = false;
+          amount = numberFormat.format(double.parse(info));
+          total = numberFormat.format(aux);
+
+          current = numberFormat.format(currentMaxAmount);
+        });
+      }
+    } else {
+      setState(() {
+        status = false;
+        amount = numberFormat.format(double.parse(info));
+        total = numberFormat.format(aux);
+
+        current = numberFormat.format(currentMaxAmount);
+      });
+    }
   }
 
   @override
@@ -602,125 +604,107 @@ class _TopSectionState extends State<TopSection> {
             ],
           ),
         ),
-        FutureBuilder(
-          builder: (c, s) {
-            if (s.connectionState == ConnectionState.done) {
-              if (s.hasData) {
-                final String maxAmount = s.data!['amount'].toString();
-                final String total = s.data!['total'].toString();
-
-                final currentMaxAmount = s.data!['current'].toString();
-
-                return Positioned(
-                  top: 80,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 30),
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20)),
-                      child: Column(
+        Positioned(
+          top: 80,
+          left: 0,
+          right: 0,
+          child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Crédito disponible',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: color.AppColors.disableColor),
-                                  ),
-                                  Text(
-                                    currentMaxAmount,
-                                    style: const TextStyle(
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black),
-                                  )
-                                ],
-                              ),
-                              CircleAvatar(
-                                radius: 20,
-                                child: Image.asset(
-                                  'assets/images/mx.png',
-                                ),
-                              )
-                            ],
+                          Text(
+                            'Crédito disponible',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: color.AppColors.disableColor),
                           ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: SizedBox(
-                              height: 5,
-                              child: LinearProgressIndicator(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20)),
-                                value: 0.9,
-                                semanticsLabel: "",
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'Gastado',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: color.AppColors.disableColor),
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  Container(
-                                      padding: const EdgeInsets.only(
-                                          top: 4, bottom: 4),
-                                      child: Text(
-                                        total,
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black),
-                                      ))
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'MX Pesos',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: color.AppColors.accentColor),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_drop_down,
-                                    color: color.AppColors.accentColor,
-                                  )
-                                ],
-                              )
-                            ],
+                          Text(
+                            amount,
+                            style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
                           )
                         ],
-                      )),
-                );
-              }
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-          future: getInfo(),
+                      ),
+                      CircleAvatar(
+                        radius: 20,
+                        child: Image.asset(
+                          'assets/images/mx.png',
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SizedBox(
+                      height: 5,
+                      child: LinearProgressIndicator(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        value: 0.9,
+                        semanticsLabel: "",
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Gastado',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: color.AppColors.disableColor),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                              padding: const EdgeInsets.only(top: 4, bottom: 4),
+                              child: Text(
+                                total,
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ))
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            'MX Pesos',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: color.AppColors.accentColor),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: color.AppColors.accentColor,
+                          )
+                        ],
+                      )
+                    ],
+                  )
+                ],
+              )),
         ),
         Visibility(
           visible: status,

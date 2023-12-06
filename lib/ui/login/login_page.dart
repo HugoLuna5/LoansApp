@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:loans_app/components/app_text_form_field.dart';
 import 'package:loans_app/resources/vectors.dart';
+import 'package:loans_app/ui/home/home_screen.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
@@ -189,6 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                                 emailController.clear();
                                 passwordController.clear();
+
                                 AppRoutes.homeScreen.pushName();
                               }
                             }

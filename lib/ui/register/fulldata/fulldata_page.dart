@@ -6,11 +6,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:loans_app/components/app_text_form_field.dart';
+import 'package:loans_app/ui/login/login_page.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:intl/intl.dart';
-import 'package:loans_app/values/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FullDataPage extends StatefulWidget {
@@ -212,7 +212,7 @@ class FullDataPageState extends State<FullDataPage> {
                                 final String? password =
                                     prefs.getString('password');
 
-                                final intValue = Random().nextInt(10000) + 3000;
+                                final intValue = Random().nextInt(10000) + 5000;
 
                                 final Map<String, dynamic> info = {
                                   'name': name,
@@ -238,7 +238,16 @@ class FullDataPageState extends State<FullDataPage> {
                                         content: Text('¡Registro completo!'),
                                       ),
                                     );
-                                    AppRoutes.loginScreen.pushName();
+
+                                    Navigator.pushAndRemoveUntil<void>(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                          builder: (BuildContext context) =>
+                                              const LoginPage()),
+                                      ModalRoute.withName('/'),
+                                    );
+
+                                    //AppRoutes.loginScreen.pushName();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(

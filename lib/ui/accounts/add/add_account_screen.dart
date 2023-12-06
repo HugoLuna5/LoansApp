@@ -82,7 +82,7 @@ class AddAccountState extends State<AddAccountScreen> {
                             autofocus: true,
                             labelText: '',
                             hintText: "Ej: 12345",
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
                             onChanged: (value) {
                               _formKey.currentState?.validate();
@@ -164,7 +164,7 @@ class AddAccountState extends State<AddAccountScreen> {
                           validator: (value) {
                             return value!.isEmpty
                                 ? 'Por favor, introduzca el alias'
-                                : value.length > 4
+                                : value.length >= 4
                                     ? null
                                     : 'Alias inválido';
                           },
@@ -180,7 +180,7 @@ class AddAccountState extends State<AddAccountScreen> {
                                 aliasAccountController.text.isNotEmpty) {
                               final userId = prefs.getInt('userId');
                               final info = {
-                                'user_id': userId,
+                                'user_id': userId ?? 0,
                                 'number': accountNumberController.text,
                                 'bank': banksDropdownValue,
                                 'fullname': ownerAccountController.text,
@@ -219,7 +219,8 @@ class AddAccountState extends State<AddAccountScreen> {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('¡Datos incorrectos!'),
+                                  content:
+                                      Text('¡Debes llenar todos los campos!'),
                                 ),
                               );
                             }

@@ -5,7 +5,6 @@ import 'package:loans_app/components/app_text_form_field_amount_loan.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/values/app_colors.dart' as color;
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'dart:ui' as ui;
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -431,7 +430,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                             Row(
                               children: [
                                 SizedBox(
-                                  width: 105,
+                                  width: 100,
                                   height: 30,
                                   child: FilledButton(
                                       onPressed: () {
@@ -466,14 +465,14 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                       child: const Text(
                                         "Quincenal",
                                         style: TextStyle(
-                                            fontSize: 12, color: Colors.white),
+                                            fontSize: 11, color: Colors.white),
                                       )),
                                 ),
                                 const SizedBox(
                                   width: 10,
                                 ),
                                 SizedBox(
-                                  width: 105,
+                                  width: 100,
                                   height: 30,
                                   child: FilledButton(
                                       onPressed: () {
@@ -507,14 +506,14 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                       child: const Text(
                                         "Mensual",
                                         style: TextStyle(
-                                            fontSize: 12, color: Colors.white),
+                                            fontSize: 11, color: Colors.white),
                                       )),
                                 ),
                                 const SizedBox(
                                   width: 10,
                                 ),
                                 SizedBox(
-                                  width: 105,
+                                  width: 100,
                                   height: 30,
                                   child: FilledButton(
                                       onPressed: () {
@@ -548,7 +547,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                       child: const Text(
                                         "Bimestral",
                                         style: TextStyle(
-                                            fontSize: 12, color: Colors.white),
+                                            fontSize: 11, color: Colors.white),
                                       )),
                                 ),
                               ],
@@ -644,7 +643,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 const SizedBox(
-                                  width: 165,
+                                  width: 145,
                                   child: Text(
                                     "Plan de pago",
                                     style: TextStyle(
@@ -973,6 +972,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
         );
       }
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('¡Datos incorrectos!'),
