@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
@@ -20,10 +22,10 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   void initState() {
     super.initState();
-    getLoans();
+    getAccounts();
   }
 
-  Future<void> getLoans() async {
+  Future<void> getAccounts() async {
     await dbHelper.init();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -58,7 +60,7 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       body: SafeArea(
           child: RefreshIndicator(
-        onRefresh: getLoans,
+        onRefresh: getAccounts,
         child: ListView.builder(
             shrinkWrap: true,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -109,7 +111,12 @@ class _AccountScreenState extends State<AccountScreen> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right)
+                      GestureDetector(
+                        onTap: () {
+                          removeAccount(context, items[index]['_id']);
+                        },
+                        child: const Icon(Icons.delete),
+                      )
                     ],
                   ),
                 ),
@@ -117,5 +124,32 @@ class _AccountScreenState extends State<AccountScreen> {
             }),
       )),
     );
+  }
+
+  removeAccount(BuildContext context, int accountId) async {
+    try {
+      final result = await dbHelper.delete('accounts', accountId);
+
+      if (result > 0) {
+        getAccounts();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Cuenta eliminada correctamente!'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Ocurrio un error al eliminar la cuenta!'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Ocurrio un error al eliminar la cuenta!'),
+        ),
+      );
+    }
   }
 }

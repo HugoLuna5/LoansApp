@@ -761,7 +761,10 @@ class RequestLoanState extends State<RequestLoanScreen> {
                                         );
                                       }).toList(),
                                       onChanged: (value) {
-                                        accountDropdownValue = value.toString();
+                                        setState(() {
+                                          accountDropdownValue =
+                                              value.toString();
+                                        });
                                       },
                                       value: accountDropdownValue.isNotEmpty
                                           ? accountDropdownValue
@@ -938,7 +941,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
 
     final transactionRequestAccepted = {
       'user_id': userId,
-      'name': 'Perestamo aceptado: "Credito $dateStr',
+      'name': 'Perestamo fue aceptado: "Credito $dateStr',
       'date':
           dateFormatTime.format(DateTime.now().add(const Duration(minutes: 15)))
     };

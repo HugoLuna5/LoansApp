@@ -366,7 +366,7 @@ class TransactionSection extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20)),
                         child: ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 10),
-                            itemCount: items!.length,
+                            itemCount: items.length,
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding:
@@ -492,7 +492,7 @@ class TopSection extends StatefulWidget {
 }
 
 class _TopSectionState extends State<TopSection> {
-  bool status = false;
+  bool status = true;
 
   @override
   void initState() {
@@ -507,7 +507,6 @@ class _TopSectionState extends State<TopSection> {
     final id = prefs.getInt('userId');
 
     final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
-    bool statusAux = false;
 
     if (loans.isNotEmpty) {
       final res = await dbHelper.getPendingPayments(loans[0]["_id"]);
@@ -533,9 +532,12 @@ class _TopSectionState extends State<TopSection> {
       aux += double.parse(loan['amount'].toString());
     }
 
+    final currentMaxAmount = double.parse(info) - aux;
+
     return {
       'amount': numberFormat.format(double.parse(info)),
-      'total': numberFormat.format(aux)
+      'total': numberFormat.format(aux),
+      'current': numberFormat.format(currentMaxAmount)
     };
   }
 
@@ -606,6 +608,9 @@ class _TopSectionState extends State<TopSection> {
               if (s.hasData) {
                 final String maxAmount = s.data!['amount'].toString();
                 final String total = s.data!['total'].toString();
+
+                final currentMaxAmount = s.data!['current'].toString();
+
                 return Positioned(
                   top: 80,
                   left: 0,
@@ -633,7 +638,7 @@ class _TopSectionState extends State<TopSection> {
                                         color: color.AppColors.disableColor),
                                   ),
                                   Text(
-                                    maxAmount,
+                                    currentMaxAmount,
                                     style: const TextStyle(
                                         fontSize: 30,
                                         fontWeight: FontWeight.bold,
