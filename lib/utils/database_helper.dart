@@ -141,6 +141,11 @@ class DatabaseHelper {
         'SELECT * FROM $userTable WHERE email = "$email" AND password = "$password"');
   }
 
+  Future<List<Map<String, dynamic>>> getCurrentUserInfo(String email) async {
+    return await _db
+        .rawQuery('SELECT * FROM $userTable WHERE email = "$email"');
+  }
+
   Future<List<Map<String, dynamic>>> getLoansByStatus(
       String status, int id) async {
     return await _db.rawQuery(

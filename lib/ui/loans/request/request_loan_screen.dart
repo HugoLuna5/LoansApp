@@ -953,7 +953,7 @@ class RequestLoanState extends State<RequestLoanScreen> {
       final loans = await dbHelper.getLastLoans(userId ?? 0);
 
       for (var i = 0; i < int.parse(numPaymentsDropdownValue); i++) {
-        addPayments(loans[0]['_id'], userId ?? 0, (i = 1));
+        await addPayments(loans[0]['_id'], userId ?? 0, (i = 1));
       }
 
       if (result > 0) {

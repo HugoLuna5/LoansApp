@@ -11,6 +11,7 @@ import 'package:loans_app/utils/database_helper.dart';
 import 'package:loans_app/utils/extensions.dart';
 import 'package:loans_app/values/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:loans_app/values/app_routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FullDataPage extends StatefulWidget {
@@ -233,12 +234,34 @@ class FullDataPageState extends State<FullDataPage> {
                                       await dbHelper.insertInfo("users", info);
 
                                   if (res > 0) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('¡Registro completo!'),
-                                      ),
-                                    );
+                                    final infoUser = await dbHelper
+                                        .getCurrentUserInfo(email.toString());
 
+                                    if (infoUser.isNotEmpty) {
+                                      await prefs.setInt(
+                                          'userId', infoUser[0]['_id']);
+                                      await prefs.setString(
+                                          'email', email.toString());
+                                      await prefs.setString('max_loan_amount',
+                                          infoUser[0]['max_loan_amount']);
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('¡Registro completo!'),
+                                        ),
+                                      );
+                                      AppRoutes.loginScreen.pushName();
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('¡Datos incorrectos!'),
+                                        ),
+                                      );
+                                    }
+
+                                    /*
                                     Navigator.pushAndRemoveUntil<void>(
                                       context,
                                       MaterialPageRoute<void>(
@@ -246,6 +269,7 @@ class FullDataPageState extends State<FullDataPage> {
                                               const LoginPage()),
                                       ModalRoute.withName('/'),
                                     );
+                                */
 
                                     //AppRoutes.loginScreen.pushName();
                                   } else {
