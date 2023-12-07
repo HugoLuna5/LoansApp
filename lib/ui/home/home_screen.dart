@@ -137,6 +137,7 @@ class _CurrentLoanInfoPaymentState extends State<CurrentLoanInfoPayment> {
 
     if (result.isNotEmpty) {
       final res = await dbHelper.getPendingPayments(result[0]["_id"]);
+
       setState(() {
         items = res;
         userId = id ?? 0;
@@ -514,6 +515,8 @@ class _TopSectionState extends State<TopSection> {
     double aux = 0.0;
 
     final loans = await dbHelper.getLoansByStatus("active", id ?? 0);
+    print("loans");
+    print(loans);
 
     for (var loan in loans) {
       aux += double.parse(loan['amount'].toString());
@@ -532,6 +535,15 @@ class _TopSectionState extends State<TopSection> {
         setState(() {
           percentAvailable = percent;
           status = false;
+          amount = numberFormat.format(double.parse(info));
+          total = numberFormat.format(aux);
+
+          current = numberFormat.format(currentMaxAmount);
+        });
+      } else {
+        setState(() {
+          percentAvailable = percent;
+          status = true;
           amount = numberFormat.format(double.parse(info));
           total = numberFormat.format(aux);
 
@@ -714,11 +726,8 @@ class _TopSectionState extends State<TopSection> {
                 ],
               )),
         ),
-        Visibility(
-          visible: status,
-          child: const Positioned(
-              top: 260, left: 0, right: 0, child: CurrentLoanInfoPayment()),
-        )
+        const Positioned(
+            top: 260, left: 0, right: 0, child: CurrentLoanInfoPayment())
       ],
     );
   }

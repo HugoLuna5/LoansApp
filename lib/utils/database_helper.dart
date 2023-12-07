@@ -156,7 +156,7 @@ class DatabaseHelper {
     int loanId,
   ) async {
     return await _db.rawQuery(
-        'SELECT * FROM $paymentsTable WHERE  _id = $loanId AND payment_date = ""  ORDER BY _id DESC');
+        'SELECT * FROM $paymentsTable WHERE  _id = $loanId AND payment_date IS NULL  ORDER BY _id DESC');
   }
 
   Future<List<Map<String, dynamic>>> getLastLoans(int id) async {
